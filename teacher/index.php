@@ -78,7 +78,7 @@
       </div>
       <div class="screen" id="myStudents">
           <h2>My Students</h2>
-          <table id="tableStudents" data-show-toggle="true" data-show-columns="true" data-search="true" data-showExport="true" data-id-field="studentId" data-filter-control="true" ></table>
+          <table id="tableStudents" data-show-toggle="true" data-show-columns="true" data-search="true" data-show-export="true" data-id-field="studentId" data-filter-control="true" ></table>
       </div>
       <div class="screen" id="resources">
         <h2>Resources</h2>
@@ -508,7 +508,7 @@
             </fieldset>
         </form>
         
-        <table id="tableStaffSearch" data-show-toggle="true" data-show-columns="true" data-search="true" data-id-field="id"></table>        
+        <table id="tableStaffSearch" data-show-toggle="true" data-show-columns="true" data-show-export="true" data-search="true" data-id-field="id"></table>        
         
       </div>      
     
