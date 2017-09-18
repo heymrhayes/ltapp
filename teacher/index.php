@@ -78,7 +78,7 @@
       </div>
       <div class="screen" id="myStudents">
           <h2>My Students</h2>
-          <table id="tableStudents" data-show-toggle="true" data-show-columns="true" data-search="true" data-id-field="studentId" data-filter-control="true" ></table>
+          <table id="tableStudents" data-show-toggle="true" data-show-columns="true" data-search="true" data-showExport="true" data-id-field="studentId" data-filter-control="true" ></table>
       </div>
       <div class="screen" id="resources">
         <h2>Resources</h2>
@@ -1148,6 +1148,10 @@ function patchData(resource,key,columnData) {
              {field: "lastName", title: "Last Name", sortable: true},
              {field: "firstName", title: "First Name", sortable: true},
              {field: "username", title: "Username", sortable: true},
+             {field: "department", title: "Primary Deparment", sortable: true},
+             {field: "phoneCell", title: "Cell Phone", sortable: true},
+             {field: "department", title: "Primary Deparment", sortable: true},
+             {field: "department", title: "Primary Deparment", sortable: true},
              {field: "department", title: "Primary Deparment", sortable: true}
             //  {
             //             field: 'actions',
