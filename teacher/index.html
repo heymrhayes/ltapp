@@ -1,0 +1,862 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="google-signin-client_id" content="466686405732-8e9j1kgs5bo1uu41pc4gkltlhonbka70.apps.googleusercontent.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://apis.google.com/js/platform.js"></script>
+    <!-- bootswatch cosmo theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cosmo/bootstrap.min.css">
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+    
+      var id_token;
+      var permissions = [];
+      var user = {};
+      
+      function onSignIn(googleUser) {
+            console.log(googleUser);
+            console.log( "signedin");
+            // Useful data for your client-side scripts:
+            var profile = googleUser.getBasicProfile();
+            console.log("Name: " + profile.getName());
+
+            user["email"] = profile.getEmail();
+            user["username"] = profile.getEmail().split("@")[0];
+    
+            id_token = googleUser.getAuthResponse().id_token;            
+            loadProfileValues(user['username']);
+            getPublicData('vwDayBellSchedules',loadBellSchedule);
+        };
+
+        gapi.load('auth2', function() {
+            console.log("gapi.load");
+            gapi.auth2.init({
+              client_id: '466686405732-8e9j1kgs5bo1uu41pc4gkltlhonbka70.apps.googleusercontent.com'
+
+            }).then(function(auth2) {
+                auth2.isSignedIn.listen(signinChanged);
+                console.log( "signed in: " + auth2.isSignedIn.get() );  
+                if(!auth2.isSignedIn.get()) {
+                  // var button = document.querySelector('#signInButton');
+                  //   button.addEventListener('click', function() {
+                  //     auth2.signIn();
+                  //   });
+                 $("#signOut").hide();
+                }
+                else {
+                   showScreen('#home');
+                   $("#signOut").show();
+                   //$("#signInButton").hide();
+                }
+                
+                
+                
+            });
+        });
+        
+        
+        function signOut() {
+          var auth2 = gapi.auth2.getAuthInstance();
+          auth2.signOut().then(function () {
+            console.log('User signed out.');
+            showScreen('#home');
+            id_token = "";
+            $("input").val("");
+          });
+        }
+    </script>
+    
+    <script>
+    var auth2; // The Sign-In object.
+    var googleUser; // The current user.
+    
+    /**
+     * Calls startAuth after Sign in V2 finishes setting up.
+     */
+    var appStart = function() {
+      console.log('appStart');
+      gapi.load('auth2', initSigninV2);
+    };
+    
+    /**
+     * Initializes Signin v2 and sets up listeners.
+     */
+    var initSigninV2 = function() {
+      console.log('initSigninV2');
+      auth2 = gapi.auth2.init({
+          client_id: '466686405732-8e9j1kgs5bo1uu41pc4gkltlhonbka70.apps.googleusercontent.com'
+        //   ,
+        //   scope: 'profile'
+      });
+    
+      // Listen for sign-in state changes.
+      auth2.isSignedIn.listen(signinChanged);
+    
+      // Listen for changes to current user.
+      auth2.currentUser.listen(userChanged);
+    
+      // Sign in the user if they are currently signed in.
+      if (auth2.isSignedIn.get() == true) {
+        auth2.signIn();
+      }
+    
+      // Start with the current live values.
+      refreshValues();
+    };
+    
+    /**
+     * Listener method for sign-out live value.
+     *
+     * @param {boolean} val the updated signed out state.
+     */
+    var signinChanged = function (val) {
+      console.log('Signin state changed to ' + val);
+      if (val) {
+        $("#signOut").show();
+        showScreen("#home");
+      }
+      //document.getElementById('signed-in-cell').innerText = val;
+    };
+    
+    /**
+     * Listener method for when the user changes.
+     *
+     * @param {GoogleUser} user the updated user.
+     */
+    var userChanged = function (user) {
+      console.log('User now: ', user);
+      googleUser = user;
+      refreshValues();
+      //updateGoogleUser();
+    //   document.getElementById('curr-user-cell').innerText =
+    //     JSON.stringify(user, undefined, 2);
+    };
+    
+    /**
+     * Updates the properties in the Google User table using the current user.
+     */
+    var updateGoogleUser = function () {
+      if (googleUser) {
+        document.getElementById('user-id').innerText = googleUser.getId();
+        document.getElementById('user-scopes').innerText =
+          googleUser.getGrantedScopes();
+        document.getElementById('auth-response').innerText =
+          JSON.stringify(googleUser.getAuthResponse(), undefined, 2);
+      } else {
+        document.getElementById('user-id').innerText = '--';
+        document.getElementById('user-scopes').innerText = '--';
+        document.getElementById('auth-response').innerText = '--';
+      }
+    };
+    
+    /**
+     * Retrieves the current user and signed in states from the GoogleAuth
+     * object.
+     */
+    var refreshValues = function() {
+      if (auth2){
+        console.log('Refreshing values...');
+    
+        googleUser = auth2.currentUser.get();
+    
+        // document.getElementById('curr-user-cell').innerText =
+        //   JSON.stringify(googleUser, undefined, 2);
+        // document.getElementById('signed-in-cell').innerText =
+        //   auth2.isSignedIn.get();
+        
+        if (auth2.isSignedIn.get()) {
+            console.log("auth2.isSignedIn.get()",auth2.isSignedIn.get());
+            $("#signedIn").show();
+            $("#signIn").hide();
+        }
+        else {
+            $("#signedIn").hide();
+            $("#signIn").show();        
+        }
+    
+        updateGoogleUser();
+      }
+    }
+
+    function showScreen(strSelector) {
+       console.log(strSelector);
+          $(".screen").hide();
+          $(strSelector).show();
+    }
+
+
+
+    </script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.css">
+    
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
+    
+    <!-- Latest compiled and minified Locales -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/locale/bootstrap-table-zh-CN.min.js"></script>
+
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-2">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">LT Apps</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#home">Teacher<span class="sr-only">(current)</span></a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">My Profile<span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#profile">Basic</a></li>
+            <li><a href="#myDepartments">Departments</a></li>
+            <li><a href="#">Something else here</a></li>
+            <li class="divider"></li>
+            <li><a href="#">Separated link</a></li>
+            <li class="divider"></li>
+            <li><a href="#">One more separated link</a></li>
+          </ul>
+        </li>
+        
+        <li><a href="#resources">Resources</a></li>
+        <!--<li><a href="#myDepartments">Departments</a></li>-->
+        <!--<li class="dropdown">-->
+        <!--  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>-->
+        <!--  <ul class="dropdown-menu" role="menu">-->
+        <!--    <li><a href="#">Action</a></li>-->
+        <!--    <li><a href="#">Another action</a></li>-->
+        <!--    <li><a href="#">Something else here</a></li>-->
+        <!--    <li class="divider"></li>-->
+        <!--    <li><a href="#">Separated link</a></li>-->
+        <!--    <li class="divider"></li>-->
+        <!--    <li><a href="#">One more separated link</a></li>-->
+        <!--  </ul>-->
+        <!--</li>-->
+      </ul>
+      <!--<form class="navbar-form navbar-left" role="search">-->
+      <!--  <div class="form-group">-->
+      <!--    <input type="text" class="form-control" placeholder="Search">-->
+      <!--  </div>-->
+      <!--  <button type="submit" class="btn btn-default">Submit</button>-->
+      <!--</form>-->
+      <ul id="logout" class="nav navbar-nav navbar-right">
+        <li id="signOut"><a href="#home" onclick="signOut();"><span class="glyphicon glyphicon-log-out" style="color:white;" aria-hidden="true"></span></a></li>
+        <!--<li id="signIn"><div id="signInButton" class="g-signin2" data-onsuccess="onSignIn"></div></li>-->
+      </ul>
+    </div>
+  </div>
+</nav>
+<style>
+    .screen {display:none;}
+</style>
+<div class="container">  
+    <div style="display:none;" id="notification" class="alert alert-dismissible alert-success">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <strong>Well done!</strong> <p></p>
+    </div>
+<!--<ul class="nav nav-tabs">-->
+<!--  <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Home</a></li>-->
+<!--  <li class=""><a href="#profile" data-toggle="tab" aria-expanded="false">Profile</a></li>-->
+<!--  <li class="disabled"><a>Disabled</a></li>-->
+<!--  <li class="dropdown">-->
+<!--    <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">-->
+<!--      Dropdown <span class="caret"></span>-->
+<!--    </a>-->
+<!--    <ul class="dropdown-menu">-->
+<!--      <li><a href="#dropdown1" data-toggle="tab">Action</a></li>-->
+<!--      <li class="divider"></li>-->
+<!--      <li><a href="#dropdown2" data-toggle="tab">Another action</a></li>-->
+<!--    </ul>-->
+<!--  </li>-->
+<!--</ul>-->
+<div id="screens" class="tab-content">
+  <h2>Today at Lane Tech</h2>
+  <div class="screen fade active in" id="home">
+      <h2 id="date"></h2>
+      <div id="bellSchedule"></div>
+      <p>Sign in with your @cps account to use this app.</p>
+    <div class="g-signin2" data-onsuccess="onSignIn"></div>
+  </div>
+  
+  <div class="screen" id="resources">
+    <div class="panel-group" id="accordion">
+			  <!-- unsubmitted attendance -->
+			  <div class="panel panel-default">
+			    <div class="panel-heading">
+			      <h4 class="panel-title">
+			          <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>&nbsp;&nbsp;<a data-toggle="collapse" data-parent="#accordion" href="#collapse1" class="" aria-expanded="true">Unsubmitted Attendance & Attendance Corrections</a>
+			      </h4>
+			    </div>
+			    <div id="collapse1" class="panel-collapse collapse" aria-expanded="true" style="">
+			      <div class="panel-body">
+
+                A report for unsubmitted attendance will be run daily approximately 10 minutes after the beginning of 8th period.  Teachers receiving an email should complete the <a href="https://docs.google.com/a/cps.edu/forms/d/1LorJwgoZ-JsyPcFJc5A8h0gJsBFLwl5gr-h86sXhD7w/viewform" target="_blank">Unsubmitted Attendance</a> form and schedule a meeting with the Assistant Principal over their department for the following day to ensure that the corrections are made.<br><br>
+                If you have make a correction to previously submitted attendance, please submit the changes for each student on the <a href="https://docs.google.com/a/cps.edu/forms/d/1LorJwgoZ-JsyPcFJc5A8h0gJsBFLwl5gr-h86sXhD7w/viewform" target="_blank">Attendance Correction</a> form within 1 week of the error.  Please do not wait until the end of the marking period to make corrections.
+			      </div>
+			    </div>
+			  </div>
+			  
+			  
+			  
+			  
+			  <!-- Tech Support -->
+			  <div class="panel panel-default">
+			    <div class="panel-heading">
+			      <h4 class="panel-title">
+			          <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>&nbsp;&nbsp;<a data-toggle="collapse" data-parent="#accordion" href="#collapse2" class="collapsed" aria-expanded="false">Tech Support</a>
+			      </h4>
+			    </div>
+			    <div id="collapse2" class="panel-collapse collapse" aria-expanded="false">
+			      <div class="panel-body">				
+                Zen Desk - <a href="http://lanetech.zendesk.com" target="_blank"><strong>Report Issue!</strong></a><br>
+                Lab Calendar Instructions - <a href="https://docs.google.com/a/cps.edu/document/d/1FmbHu94lSSpSNzTrSqmBx5iGntDqzAF_Z4FcOszK6t4" target="_blank">Click Here</a><br>
+				Discounted software - <a href="http://www.microsofthup.com/hupus/home.aspx?dialect_id=en-US&country_id=US" target="_blank">Shop now!</a><br>
+                Free MS Office 365 Education - <a href="http://office.microsoft.com/en-us/office-in-education-FX104367920.aspx" target="_blank">Click Here</a>
+                <ul>
+                	<li>Click link to "find out if you're eligible"</li>
+                	<li>Type in your school email address: username@cps.edu</li>
+                    <li>Check your CPS Email for link. Email should be from Microsoft Office 365 Team.</li>
+                    <li>You may need to login or create an account.</li>
+                    <li>If you need to download for Mac, you need to be clicking on the link on a Mac Computer. If you want the PC version, click the link from a PC.</li>
+                </ul></div>
+			    </div>
+			  </div>
+			  <!-- Engineering and Building Use -->
+			  <div class="panel panel-default">
+			    <div class="panel-heading">
+			      <h4 class="panel-title">
+			          
+			          <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+			          &nbsp;&nbsp; <a data-toggle="collapse" data-parent="#accordion" href="#collapse3" class="collapsed" aria-expanded="false">
+			        Engineering & Building Use</a>
+			      </h4>
+			    </div>
+			    <div id="collapse3" class="panel-collapse collapse" aria-expanded="false">
+			      <div class="panel-body">
+				
+                <strong><a href="https://docs.google.com/a/cps.edu/forms/d/1kYD6O9Fte9KjgJBSkiABHiLCoNHVpRJ2F1D8nmVHjK0/viewform" target="_blank">Click here</a></strong> to report any structural issues with your classroom and/or office<br><br>
+                <strong><a href="https://docs.google.com/a/cps.edu/document/d/1FmbHu94lSSpSNzTrSqmBx5iGntDqzAF_Z4FcOszK6t4/">Click here</a></strong> to access the reservation calendar for shared spaces.<br><br>
+                <strong><a href="https://docs.google.com/a/cps.edu/forms/d/11GEVk-oR8tapUgfhA0q79GGG1EVtFFKQwBOMRJ4jrSI/viewform" target="_blank">Click here</a></strong> to reserve the Library Media Room (pending approval).<br><br>
+                If you are using building space other than your classroom, please <!--check the <a href="http://www.google.com/calendar/embed?src=cps.edu_34a0fj4iepfs44g6l9626rri1g%40group.calendar.google.com&ctz=America/Chicago">building operations calendar</a> and then -->fill out <a href="https://docs.google.com/a/cps.edu/file/d/0B4V9Lsog04thNzFLc0JHQkdLWGM/edit?usp=sharing" target="_blank">this form</a> (requires login) and return it to Ms. Degante in the Records Office<br><br>			      	
+			      </div>
+			    </div>
+			  </div>
+			</div>
+  </div>
+  <div class="screen" id="profile">
+    <form id="profileForm" class="form-horizontal">
+      <fieldset id="profileFieldset">
+        
+        <div id="profileButtons" class="form-group">
+            <button type="reset" class="btn btn-default">Cancel</button>
+            <button id="profileButton" type="submit" class="btn btn-primary">Submit</button>
+        </div>
+        </fieldset>
+    </form>
+    
+  </div>
+  <div class="screen" id="myDepartments">
+    <div class="container">
+       <img class="loader" src="/applications/assets/Loading_2.gif" alt="Loading..."> 
+    </div>
+  </div>
+  
+  
+</div>
+</div>
+
+<div class="container" style="display:none;">
+    <h1>Teacher</h1>
+    Filter  by:
+    <label for="selDepartment">Completion Status</label>
+    <select name="selDepartment" id="selDepartment">
+        <option value="Any" selected>Any</option>
+        
+    </select>
+    <label for="selGrade">Grade Level (17-18 SY)</label>
+    <select name="selGrade" id="selGrade">
+        <option value="Any" selected>Any</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+    </select>
+    <label for="txtStudentId">Student Id</label>
+    <input type="text" id="txtStudentId" name="txtStudentId" placeholder="8-digit student id">
+    <label for="selLimit">Max Records</label>
+    <select name="selLimit" id="selLimit">
+        <option value="10">10</option>
+        <option value="100" selected>100</option>
+        <option value="1000">1000</option>
+        <option value="5000">5000</option>
+    </select>
+
+    <a id="search" href="#" class="btn btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search</a>
+</div>
+<hr>
+<div id="searchResults" class="container"  style="display:none;">
+    <table id="tableResults" data-detail-view="true" class="table table-striped">
+
+    </table>
+    
+</div>
+<script>
+
+    var data;
+    var now = new Date();
+    
+
+function postData(resource,key,columnData) {
+        console.log("testPatch");
+        console.log(key,columnData);
+        
+        
+        $.post(
+                    'https://lanetech.org/api/v2/api.php/' + resource + '/' + key, 
+                    
+                    { 
+                        idtoken: id_token,
+                        method: "PATCH",
+                        columns: columnData
+                    },
+                    function(response) {
+                        //console.log(response);
+                        $("#notification p").text("Profile updated");
+                        $("#notification strong").text("Success");
+                        $("#notification").show();
+                        $("#profileButton").prop("disabled",false);
+                    });
+        
+        };
+
+
+        function getData(strResource, strKey) {
+            $.post(
+                    'https://lanetech.org/api/v2/api.php/' + strResource + '/' + strKey, 
+                    
+                    { 
+                        idtoken: id_token,
+                        method: "GET"
+                    
+                    },
+                    function(response) {
+                        console.log(response);
+                        
+                        
+                        
+                    });
+        
+            }     
+
+    
+    $(function() {
+        
+        var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        
+        
+        $("#home").find("#date").html("It's " + now.toLocaleDateString('en-US', options));
+        
+        
+        
+        
+        
+       $("#profileButton").on("click", function() {
+           var key = $("input[id='id']").val();
+           var profileData ={};
+           $('input.ltdata').filter(':enabled').each(function(){
+                //console.log($(this));
+                profileData[$(this).attr("id")] = $(this).val();
+            });
+            //console.log(profileData);
+           postData('Staff',key,profileData);
+           $("#profileButton").prop("disabled",true);
+           $('html, body').animate({scrollTop: '0px'}, 300);
+           return false;
+           
+           
+       });
+       
+       
+       
+            
+        $("ul.nav li a").on("click", function() {
+          
+          var target = $(this).attr("href");
+
+          if (target == "#myDepartments") {
+              getMyData('vwStaffDepartments',loadMyDepartments);
+          }
+
+          
+          if (target != "#") {
+             showScreen(target);
+             //return false;
+          }
+          
+          
+        });
+        
+        
+        
+        
+        //loadProfileValues(user['username']);
+        
+        function loadFilterValues() {
+            $.post(
+                    'https://lanetech.org/api/v2/api.php/Department/', 
+                    
+                    { 
+                        idtoken: id_token,
+                        method: "GET"
+                    
+                    },
+                    function(response) {
+                        $.each(response.data, function(i,v){
+                            $("#selDepartment").append('<option value=' + v["id"] +'>' + v["name"] + '</option>');
+                        })
+                        
+                        
+                        
+                    })
+        
+            }
+         
+         
+        //setTimeout(loadFilterValues,3000); 
+                
+        $("#search").on("click", function() {
+            makeDataRequest();
+        })
+        
+        
+        $.each(columns, function(k,v) {
+           if (v["Display"]) {
+               //  Legend Text provides group headers
+               if (v.hasOwnProperty("legendText")) {
+                   var legend = $("<legend>");
+                   legend.text(v["legendText"]);
+                   $("#profileFieldset").append(legend);
+               };
+
+               var group = $("<div>");
+               var label = $("<label>");
+               var div = $("<div>");
+               var field = $("<input>");
+               
+               var datalist = $("<datalist>");
+               var option = $("<option>");
+
+                
+                // DataList for "autocomplete"
+                if (v.hasOwnProperty("DataList")) {
+                    datalist.attr("id", k + "DataList");
+                    field.attr("list",k + "DataList");
+                    $.each(v["DataList"], function(idx,val) {
+                       option = $("<option>"); 
+                       option.attr("value",val);
+                       option.text(val);
+                       datalist.append(option);
+                    });
+                }    
+
+               
+               group.addClass("form-group");
+               field.attr("id", k);
+               field.attr("name", k);
+               field.attr("maxlength", v["MaxLength"]);
+               field.addClass("form-control ltdata");
+              if (v["Label"].includes("Phone")) {
+                  field.attr("pattern", patterns["phone"]);
+                  field.attr("title", "Please enter phone in 999-999-9999 format" );
+              }
+               
+            
+               if (!v["Editable"]) {
+                   field.attr("disabled","");
+               }
+               div.addClass("col-lg-10");
+               div.append(field);
+               if (v.hasOwnProperty("DataList")) {
+                div.append(datalist);
+                   
+               }
+               
+               label.attr("for",k);
+               label.text(v["Label"]);
+               label.addClass("control-label col-lg-2")
+               group.append(label);
+               group.append(div);
+               $("#profileFieldset").append(group);               
+               
+           }
+
+        });
+        
+        $("#profileFieldset").append($("#profileButtons"));
+        
+        
+        
+        
+    })
+    
+
+    function getPublicData (resource, responseHandler) {
+        var url = 'https://lanetech.org/api/v2/api.php/' + resource ;
+        
+        if (resource == 'vwDayBellSchedules') {
+            url += "?date=" + now.toISOString().substring(0, 10);
+        }
+        $.post(
+                url, 
+                { 
+                    idtoken: id_token,
+                    method: 'GET'
+                },
+                responseHandler);           
+    }
+
+
+
+
+    function getMyData (resource, responseHandler) {
+        var url = 'https://lanetech.org/api/v2/api.php/' + resource + '?username=' + user["username"];
+                $.post(
+                        url, 
+                        { 
+                            idtoken: id_token,
+                            method: 'GET'
+                        },
+                        responseHandler);           
+    }
+
+    function loadMyDepartments (response) {
+        displayData(response.data, 'myDepartments');
+    }
+
+
+    function loadBellSchedule (response) {
+        displayData(response.data, 'bellSchedule');
+    }
+
+    var displayData = function(data, screenName) {
+         console.log("loadDepartments");
+        //console.log(data);
+        var screen = $("#" + screenName);
+        var container = screen.find("div.container");
+        
+        //$("#myDepartments div.container").html("");
+        container.html("");
+        $.each(data, function(i,v) {
+            container.append(JSON.stringify(v, null, '\t'));
+        });
+    }
+    
+    
+    var displayColumns = ["id","firstName","lastName","department","username","email"];
+    
+    function makeDataRequest() {
+       var baseUrl = "https://lanetech.org/api/v2/api.php/Teacher/";
+       var url = baseUrl;
+       if ($.isNumeric($("#txtStudentId").val())) {
+           url = baseUrl + $("#txtStudentId").val() + "?";
+       } 
+       else {
+           url += "?"
+           if ($("#selGrade").val() != "Any") {
+             url += "&grade=" + $("#selGrade").val(); 
+           } 
+           if ($("#selDepartment").val() != "Any") {
+               url += "&department_id=" + $("#selDepartment").val(); 
+           }
+       }
+       
+       url += "&limit=" + $("#selLimit").val();
+       callApi(url);
+        
+        
+        
+        
+    }
+    
+    function logToConsole(response) {
+        console.log(response);
+    }
+    
+    
+    function getData(resource, key, responseHandler) {
+        var url = 'https://lanetech.org/api/v2/api.php/' + resource + (key!=0 ? '/' + key : '');
+        $.post(
+                url, 
+                { 
+                    idtoken: id_token,
+                    method: 'GET'
+                },
+                window[responseHandler]);      
+    }
+    
+
+    
+    
+    
+    
+    function loadProfileValues (username) {
+        var url = 'https://lanetech.org/api/v2/api.php/Staff/?username=' + username;
+        $.post(
+                url, 
+                { 
+                    idtoken: id_token,
+                    method: 'GET'
+                },
+                function(response) {
+                    var profileData = response.data[0];
+                    $.each(profileData, function(k,v) {
+                        //console.log(k,$("input[id='" + k + "']"));
+                        $("input[id='" + k + "']").val(v);
+                    })
+                });      
+    }
+        
+        
+    
+    function callApi(url, dataMethod = 'GET'){
+            //   using POST for every request due to Google Auth;
+            //   dataMethod uses HTTP request methods, but all requests are POSTS
+            //   using http request method names as "method" item in passed data
+            $.post(
+                url, 
+                // 
+                { 
+                    idtoken: id_token,
+                    method: dataMethod
+                
+                },
+                function(response) {
+                    var columns = [];
+                    var column;
+                    $.each(response.data[0], function (k,v) {
+                         column = {};
+                         column.field = k;
+                         column.title = k;
+                         column.sortable = true;
+                         columns.push(column);
+                    });
+                    console.log(columns);
+                    console.log(response.data);
+    //                 var myColumns = [{
+    //     field: 'id',
+    //     title: 'id'
+    // }, {
+    //     field: 'firstName',
+    //     title: 'First Name',
+    //     sortable: true
+    // }];
+                    $('#tableResults').bootstrapTable({
+                        detailFormatter: detailFormatter,
+                        columns: columns,
+    // columns: columns,
+    data: response.data
+
+                    });
+                });
+                // function(response) {
+                //     data = response.data;
+                //     $("#tableResults").html("");
+                //     $("#tableResults").append("<tr id='tableHead'></tr>");
+                //     $.each(displayColumns, function(i,v){
+                //         $("#tableHead").append("<th>" + v + "</th>");
+                //     });
+                //     $("#tableResults").append("<tbody></tbody>");
+                //     //console.log(typeof response);
+                //     $.each(response.data, function(di,dv){
+                //         var row = $("<tr>");
+                //         var cell;
+                //         console.log(dv);
+                //         $.each(displayColumns, function(ci,cv){
+                //             row.append("<td>" + dv[cv] + "</td>");
+                //         })
+                        
+                //         $("#tableResults tbody").append(row);
+                //     })
+                    
+                    
+                    
+                // });
+        };
+        
+    
+        function detailFormatter(index, row) {
+            var html = [];
+            $.each(row, function (key, value) {
+                html.push('<p><b>' + key + ':</b> ' + value + '</p>');
+            });
+            return html.join('');
+        }
+    
+        var columns = {
+
+"id":{ "Label":"ID",	"Display":true,	"Editable":false,	"MaxLength":6},
+"employeeId":{	"Label":"Employee ID",	"Display":false,	"Editable":false,	"MaxLength":9},
+"tempId":{	"Label":"tempID",	"Display":false,	"Editable":false,	"MaxLength":6},
+"firstName":{	"Label":"First Name",	"Display":true,	"Editable":true,	"MaxLength":25},
+"lastName":{	"Label":"Last Name",	"Display":true,	"Editable":true,	"MaxLength":25},
+"username":{	"Label":"Username",	"Display":true,	"Editable":false,	"MaxLength":25},
+"title":{	"Label":"Title",	"Display":true,	"Editable":false,	"MaxLength":50},
+"department":{	"Label":"department",	"Display":false,	"Editable":false,	"MaxLength":50},
+"department_id":{	"Label":"department_id",	"Display":false,	"Editable":false,	"MaxLength":4},
+"email":{	"Label":"Email",	"Display":true,	"Editable":false,	"MaxLength":50},
+"gradebookId":{	"Label":"Gradebook ID",	"Display":true,	"Editable":false,	"MaxLength":10},
+"old_id":{	"Label":"old_id",	"Display":false,	"Editable":false,	"MaxLength":6},
+"address1":{	"Label":"Address1",	"Display":true,	"Editable":true,	"MaxLength":50},
+"address2":{	"Label":"Address2",	"Display":true,	"Editable":true,	"MaxLength":50},
+"city":{	"Label":"City",	"Display":true,	"Editable":true,	"MaxLength":50},
+"state":{	"Label":"State",	"Display":true,	"Editable":true,	"MaxLength":2},
+"zip":{	"Label":"ZIP",	"Display":true,	"Editable":true,	"MaxLength":10},
+"phoneHome":{	"Label":"Phone: Home",	"Display":true,	"Editable":true,	"MaxLength":12},
+"phoneCell":{	"Label":"Phone: Cell",	"Display":true,	"Editable":true,	"MaxLength":12},
+"cellCarrier":{	"Label":"Cell Carrier",	"Display":true,	"Editable":true,	"MaxLength":25, "DataList": ['AT&T','Boost Mobile','Cricket Wireless','MetroPCS','Pinger','Sprint','T-Mobile','US Cellular','Verizon Wireless','Virgin Mobile']},
+"emgName":{	"Label":"Name",	"Display":true,	"Editable":true,	"MaxLength":75},
+"emgAddress1":{	"Label":"Address 1",	"Display":true,	"Editable":true,	"MaxLength":50},
+"emgAddress2":{	"Label":"Address 2",	"Display":true,	"Editable":true,	"MaxLength":50},
+"emgCity":{	"Label":"City",	"Display":true,	"Editable":true,	"MaxLength":50},
+"emgState":{	"Label":"State",	"Display":true,	"Editable":true,	"MaxLength":2},
+"emgZip":{	"Label":"Zip",	"Display":true,	"Editable":true,	"MaxLength":12},
+"emgPhone":{	"Label":"Phone",	"Display":true,	"Editable":true,	"MaxLength":12},
+"emgRelationship":{	"Label":"Relationship",	"Display":true,	"Editable":true,	"MaxLength":25},
+"docName":{	"Label":"Name",	"Display":true,	"Editable":true,	"MaxLength":75},
+"docAddress1":{	"Label":"Address 1",	"Display":true,	"Editable":true,	"MaxLength":50},
+"docAddress2":{	"Label":"Address 2",	"Display":true,	"Editable":true,	"MaxLength":50},
+"docCity":{	"Label":"City",	"Display":true,	"Editable":true,	"MaxLength":50},
+"docState":{	"Label":"State",	"Display":true,	"Editable":true,	"MaxLength":2},
+"docZip":{	"Label":"Zip",	"Display":true,	"Editable":true,	"MaxLength":12},
+  "docPhone":{	"Label":"Phone",	"Display":true,	"Editable":true,	"MaxLength":12}};
+
+
+var patterns = {};
+patterns.phone = "[0-9]{3}-[0-9]{3}-[0-9]{4}";
+patterns.zip = "(\d{5}([\-]\d{4})?)";
+patterns.state = "[A-Z]{2}";
+
+
+columns["id"]["legendText"] = "Profile Basics"  ;  
+columns["emgName"]["legendText"] = "Emergency Contact"  ; 
+columns["docName"]["legendText"] = "Physician"  ;       
+
+
+
+
+</script>
