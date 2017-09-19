@@ -1262,7 +1262,7 @@ function patchData(resource,key,columnData) {
                     function(response) {
                         var studentData = response.data;
                         $.each(studentData, function(i,v) {
-                            studentData[i]["email"] = studentData[i]["username"] + "@cps.edu";
+                            studentData[i]["email"] = studentData[i]["studentUsername"] + "@cps.edu";
                         });
                         loadCoursesAndStudents(studentData,"tableStudents");
                         loadDataLists(studentData);
