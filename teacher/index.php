@@ -273,7 +273,7 @@
           <div class="container">
           <h2></h2>
           <div class="panel-group" id="studentDetailAccordion">
-              <div class="panel panel-default">
+                  <div class="panel panel-default">
     			    <div class="panel-heading">
     			      <h4 class="panel-title">
     			          <a data-toggle="collapse" data-parent="#studentDetailAccordion" href="#studentProfile">
@@ -282,6 +282,19 @@
     			    </div>
     			    <div id="studentProfile" class="panel-collapse collapse">
     			      <div id="studentProfilePanelBody" class="panel-body">
+    			      	
+    			      </div>
+    			    </div>
+    			  </div>
+    			  <div class="panel panel-default">
+    			    <div class="panel-heading">
+    			      <h4 class="panel-title">
+    			          <a data-toggle="collapse" data-parent="#studentDetailAccordion" href="#studentDivisionInformation">
+    			        <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>&nbsp;&nbsp;Division</a>
+    			      </h4>
+    			    </div>
+    			    <div id="studentDivisionInformation" class="panel-collapse collapse">
+    			      <div id="studentDivisionInformationPanelBody" class="panel-body">
     			      	
     			      </div>
     			    </div>
@@ -1660,6 +1673,7 @@ function patchData(resource,key,columnData) {
     function getStudentDetail (studentId) {
         getData('Student', studentId, loadStudentBasic);
         getData('student_database', studentId, loadStudentContacts);
+        getDataWithParams('vwStudentDivision', {"student_id": studentId}, loadStudentDivision);
         getDataWithParams('vwStudentCourseSections', {"student_id": studentId}, loadStudentCourseSections);
         getDataWithParams('vwCommunicationLogEntries', {"student_id": studentId}, loadStudentCommunicationLogEntries);
         getDataWithParams('vwDemeritEntries', {"student_id": studentId}, loadStudentDemeritEntries);
@@ -1815,6 +1829,35 @@ function patchData(resource,key,columnData) {
 
    }
     
+    
+    
+     function loadStudentDivision(response) {
+        var data = response.data;
+        
+        var div = data[0]
+        
+        $("#studentDivisionInformationPanelBody").text("");
+        
+        var t = $('<table class="table table-striped">');
+        var tbody = $('<tbody>');
+        tbody.append('<tr><td>Code</td><td>' + div["code"] + '</td></tr>');
+        
+        tbody.append('<tr><td>Room</td><td>' + div["room"] + '</td></tr>');
+        tbody.append('<tr><td>Teacher Name</td><td>' + div["divisionTeacherName"] + '</td></tr>');
+        tbody.append('<tr><td>Teacher Email</td><td>' + div["divisionTeacherEmail"] + '</td></tr>');
+        tbody.append('<tr><td>Counselor Name</td><td>' + div["divisionCounselorName"] + '</td></tr>');
+        tbody.append('<tr><td>Counselor Email</td><td>' + div["divisionCounselorEmail"] + '</td></tr>');
+        tbody.append('<tr><td>Attendance Name</td><td>' + div["divisionAttenanceName"] + '</td></tr>');
+        tbody.append('<tr><td>Attendance Email</td><td>' + div["divisionAttendanceEmail"] + '</td></tr>');
+        
+        t.append(tbody);
+        
+        $("#studentDivisionInformationPanelBody").append(t);
+        
+        
+        
+        hideLoader('studentDivisionInformation');
+    }
     
     function loadStudentCourseSections(response) {
         var data = response.data;
