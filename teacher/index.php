@@ -195,7 +195,7 @@
                 <input id="subject" name="subject" maxlength="50" class="form-control ltdata">
             </div>
             <label for="summary" class="control-label col-lg-2">Summary</label>
-            <div class="col-lg-10 form-group"><textarea  id="summary" name="summary" maxlength="255" class="form-control ltdata"></textarea></div>
+            <div class="col-lg-10 form-group"><textarea  id="summary" name="summary" maxlength="1000" class="form-control ltdata" placeholder="Enter a summary of the communication (1000 characters max)"></textarea></div>
             
          
             
@@ -1002,9 +1002,10 @@ function patchData(resource,key,columnData) {
             columns: [
              {field: "dateTime", title: "Date/Time", sortable: true},
              {field: "studentId", title: "Student ID", sortable: true},
-             {field: "studentLastName", title: "Last Name", sortable: true},
-             {field: "studentFirstName", title: "First Name", sortable: true},
+             {field: "studentFullName", title: "Student Name", sortable: true},
              {field: "studentUsername", title: "Username", sortable: true},
+             {field: "staffFullName", title: "Staff Name", sortable: true},
+             {field: "staffEmail", title: "Staff Email", sortable: true},
              {field: "category", title: "Category", sortable: true},
              {field: "method", title: "Method", sortable: true},
              {field: "subject", title: "Subject", sortable: true}
@@ -1161,7 +1162,7 @@ function patchData(resource,key,columnData) {
             displayColumns = [
              {field: "lastName", title: "Last Name", sortable: true},
              {field: "firstName", title: "First Name", sortable: true},
-             {field: "username", title: "Username", sortable: true},
+             //{field: "username", title: "Username", sortable: true},
              {field: "department", title: "Primary Deparment", sortable: true},
              {field: "phoneCell", title: "Cell Phone", sortable: true},
              {field: "phoneHome", title: "Home Phone", sortable: true},
