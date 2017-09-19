@@ -78,7 +78,7 @@
       </div>
       <div class="screen" id="myStudents">
           <h2>My Students</h2>
-          <table id="tableStudents" data-show-toggle="true" data-show-columns="true" data-search="true" data-show-export="true" data-id-field="studentId" data-filter-control="true" ></table>
+          <table id="tableStudents" data-show-toggle="true" data-show-columns="true" data-search="true" data-show-export="true" data-id-field="studentId" data-detail-view="true" data-filter-control="true" ></table>
       </div>
       <div class="screen" id="resources">
         <h2>Resources</h2>
@@ -508,7 +508,7 @@
             </fieldset>
         </form>
         
-        <table id="tableStaffSearch" data-show-toggle="true" data-show-columns="true" data-show-export="true" data-search="true" data-id-field="id"></table>        
+        <table id="tableStaffSearch" data-show-toggle="true" data-show-columns="true" data-detail-view="true" data-show-export="true" data-search="true" data-id-field="id"></table>        
         
       </div>      
     
@@ -1131,6 +1131,7 @@ function patchData(resource,key,columnData) {
              {field: "courseCode", title: "Code", sortable: true},
              {field: "period", title: "Period", "filterControl": "select", sortable: true},
              {field: "sectionNumber", title: "Section", sortable: true},
+             {field: "email", title: "Email", sortable: true},
              {
                         field: 'actions',
                         title: 'Actions',
@@ -1150,9 +1151,8 @@ function patchData(resource,key,columnData) {
              {field: "username", title: "Username", sortable: true},
              {field: "department", title: "Primary Deparment", sortable: true},
              {field: "phoneCell", title: "Cell Phone", sortable: true},
-             {field: "department", title: "Primary Deparment", sortable: true},
-             {field: "department", title: "Primary Deparment", sortable: true},
-             {field: "department", title: "Primary Deparment", sortable: true}
+             {field: "phoneHome", title: "Home Phone", sortable: true},
+             {field: "email", title: "Email", sortable: true}
             //  {
             //             field: 'actions',
             //             title: 'Actions',
@@ -1260,8 +1260,12 @@ function patchData(resource,key,columnData) {
                     
                     },
                     function(response) {
-                        loadCoursesAndStudents(response.data,"tableStudents");
-                        loadDataLists(response.data);
+                        var studentData = response.data;
+                        $.each(studentData, function(i,v) {
+                            studentData[i]["email"] = studentData[i]["username"] + "@cps.edu";
+                        });
+                        loadCoursesAndStudents(studentData,"tableStudents");
+                        loadDataLists(studentData);
                     });
         
             }            
