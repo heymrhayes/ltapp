@@ -251,6 +251,7 @@
             <li><a href="#studentSearch">Student Search</a></li>
             <li><a href="#staffSearch">Staff Search</a></li>
             <li><a href="#communicationLogSearch">Communication Log Search</a></li>
+            <li><a href="#demeritSearch">Student Demerit Search</a></li>
             <li><a href="#absenceSearch">Student Absence Search</a></li>
             <!--<li><a href="#demerit">Demerit</a></li>-->
           </ul>

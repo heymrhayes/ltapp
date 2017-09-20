@@ -345,6 +345,7 @@
     			          <a data-toggle="collapse" data-parent="#studentDetailAccordion" href="#studentDemeritEntries">
     			        <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>&nbsp;&nbsp;Demerit Entries</a>&nbsp;&nbsp;
     			        <span id="badgeDemeritCount" class="badge"></span>
+    			        <span id="badgeDemeritEntryCount" class="badge"></span>
     			      </h4>
     			    </div>
     			    <div id="studentDemeritEntries" class="panel-collapse collapse">
@@ -450,6 +451,43 @@
         </form>
         
         <table id="tableCommunicationLogSearch" data-show-toggle="true" data-show-columns="true" data-detail-view="true" data-search="true" data-id-field="id"></table>        
+        
+      </div>
+      <div class="screen" id="demeritSearch">
+        <form id="demeritSearchForm" class="form-horizontal">
+          <fieldset id="demeritSearchFieldset">
+              
+             <label  class="control-label col-lg-2"></label> 
+             <h2 class="col-lg-10 form-group">Demerit Search</h2> 
+              
+            <label for="student_id" class="control-label col-lg-2">Student ID</label>
+            <div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata"></div>
+            
+            <label for="studentFirstName" class="control-label col-lg-2">Student First Name</label>
+            <div class="col-lg-10 form-group"><input id="studentFirstName" name="studentFirstName" maxlength="25" class="form-control ltdata"></div>
+
+            <label for="studentLastName" class="control-label col-lg-2">Last Name</label>
+            <div class="col-lg-10 form-group"><input id="studentLastName" name="studentLastName" maxlength="25" class="form-control ltdata"></div> 
+
+            <label for="staffFirstName" class="control-label col-lg-2">Staff First Name</label>
+            <div class="col-lg-10 form-group"><input id="staffFirstName" name="staffFirstName" maxlength="25" class="form-control ltdata"></div>
+
+            <label for="staffLastName" class="control-label col-lg-2">Staff Last Name</label>
+            <div class="col-lg-10 form-group"><input id="staffLastName" name="staffLastName" maxlength="25" class="form-control ltdata"></div>
+
+            <label for="reason" class="control-label col-lg-2">Reason</label>
+            <div class="col-lg-10 form-group"><input class="form-control ltdata" list="demeritReasons" id="reason" name="reason" >
+            </div>
+
+            <label for="demeritSearchButtons" class="control-label col-lg-2"></label>
+            <div id="demeritSearchButtons" class="form-group col-lg-10">
+                <button type="reset" class="btn btn-default">Cancel</button>
+                <button id="demeritSearchButton" type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            </fieldset>
+        </form>
+        
+        <table id="tableDemeritSearch" data-show-toggle="true" data-show-columns="true" data-detail-view="true" data-search="true" data-id-field="id"></table>        
         
       </div>
 
@@ -775,6 +813,19 @@ function patchData(resource,key,columnData) {
            return false;
        });
 
+       $("#demeritSearchButton").on("click", function() {
+           var formValues = $("#demeritSearchForm").serializeArray();
+           var params = {};
+           $.each(formValues, function(i,v) {
+              if (v.value != "") {
+                  params[v.name] = v.value;
+              } 
+           });
+           searchDemerits(params);
+           return false;
+       });
+
+
        $("#staffSearchButton").on("click", function() {
            var formValues = $("#staffSearchForm").serializeArray();
            var params = {};
@@ -1008,12 +1059,47 @@ function patchData(resource,key,columnData) {
              {field: "staffEmail", title: "Staff Email", sortable: true},
              {field: "category", title: "Category", sortable: true},
              {field: "method", title: "Method", sortable: true},
-             {field: "subject", title: "Subject", sortable: true}
+             {field: "subject", title: "Subject", sortable: true},
+             {
+                        field: 'actions',
+                        title: 'Actions',
+                        align: 'center',
+                        events: actionEvents,
+                        formatter: actionFormatter
+                    }
              ],   
             data: response.data
         });
          hideLoader('myCommunicationLogEntries');
     }    
+
+    function loadDemeritSearchResults (response) {
+
+        $('#tableDemeritSearch').bootstrapTable('destroy');
+        $('#tableDemeritSearch').bootstrapTable({
+            detailFormatter: function(index, row) {return row["comment"]},
+            columns: [
+             {field: "dateTime", title: "Date/Time", sortable: true},
+             {field: "studentId", title: "Student ID", sortable: true},
+             {field: "studentFullName", title: "Student Name", sortable: true},
+             {field: "studentEmail", title: "Student Email", sortable: true},
+             {field: "staffFullName", title: "Staff Name", sortable: true},
+             {field: "staffEmail", title: "Staff Email", sortable: true},
+             {field: "reason", title: "Reason", sortable: true},
+             {field: "amount", title: "Number", sortable: true},
+             {
+                        field: 'actions',
+                        title: 'Actions',
+                        align: 'center',
+                        events: actionEvents,
+                        formatter: actionFormatter
+                    }
+             ],   
+            data: response.data
+        });
+         //hideLoader('myCommunicationLogEntries');
+    }   
+
  
      function loadAbsenceSearchResults (response) {
         console.log("loadAbsenceSearchResults");
@@ -1027,7 +1113,14 @@ function patchData(resource,key,columnData) {
              {field: "studentFullName", title: "Student Name", sortable: true},
              {field: "studentUsername", title: "Username", sortable: true},
              {field: "period", title: "Period", "filterControl": "select", sortable: true},
-             {field: "status", title: "Status", "filterControl": "select", sortable: true}
+             {field: "status", title: "Status", "filterControl": "select", sortable: true},
+             {
+                        field: 'actions',
+                        title: 'Actions',
+                        align: 'center',
+                        events: actionEvents,
+                        formatter: actionFormatter
+                    }
              ],   
             data: response.data
         });
@@ -1249,6 +1342,21 @@ function patchData(resource,key,columnData) {
                         loadCommunicationLogSearchResults(response);
                     });
         }   
+
+        function searchDemerits(params) {
+                $.post(
+                    'https://lanetech.org/api/v2/api.php/vwDemeritEntries?' + $.param(params), 
+                    
+                    { 
+                        idtoken: id_token,
+                        method: "GET"
+                    
+                    },
+                    function(response) {
+                        loadDemeritSearchResults(response);
+                    });
+        }   
+
         
         function searchAbsence(params) {
                 $.post(
@@ -1918,7 +2026,7 @@ function patchData(resource,key,columnData) {
         });
         
         $("#badgeDemeritCount").text("Number of demerits: " + totalDemerits);
-        
+        $("#badgeDemeritEntryCount").text("Number of entries: " + data.length);
         $("#studentDemeritEntries table").remove();
         var sortedData = response.data.sort(function(a, b){
             	return a.dateTime - b.dateTime;
