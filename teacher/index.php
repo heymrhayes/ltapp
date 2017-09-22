@@ -243,6 +243,44 @@
         </form>
         
       </div>
+      <div class="screen" id="editSection">
+        
+        
+        <form id="editSectionForm" class="form-horizontal">
+          <fieldset id="editSectionFieldset">
+              
+             <label  class="control-label col-lg-2"></label> 
+             <h2 class="col-lg-10 form-group">Edit Section</h2> 
+              
+            <label for="id" class="control-label col-lg-2">Section ID</label>
+            <div class="col-lg-10 form-group"><input  id="id" name="id" disabled class="form-control ltdata"></div>
+            
+            <label for="courseCode" class="control-label col-lg-2">Course Code</label>
+            <div class="col-lg-10 form-group"><input  id="courseCode" name="courseCode" disabled class="form-control ltdata"></div>
+            
+            <label for="courseName" class="control-label col-lg-2">Course Name</label>
+            <div class="col-lg-10 form-group"><input  id="courseName" name="courseName" disabled class="form-control ltdata"></div>
+            
+            
+            <label for="number" class="control-label col-lg-2">Section Number</label>
+            <div class="col-lg-10 form-group"><input  id="number" name="number" disabled class="form-control ltdata"></div>
+ 
+            <label for="period" class="control-label col-lg-2">Period</label>
+            <div class="col-lg-10 form-group"><input  id="period" name="period" disabled class="form-control ltdata"></div> 
+ 
+            
+            <label for="room" class="control-label col-lg-2">Room</label>
+                <div class="col-lg-10 form-group"><input  id="room" name="room" class="form-control ltdata" maxlength="10"></div>
+
+            <label for="editSectionButtons" class="control-label col-lg-2"></label>
+            <div id="editSectionButtons" class="form-group col-lg-10">
+                <button type="reset" class="btn btn-default">Cancel</button>
+                <button id="editSectionButton" type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            </fieldset>
+        </form>
+        
+      </div>
       <div class="screen" id="myDepartments">
         <div class="container">
            <img class="loader" src="/applications/assets/Loading_2.gif" alt="Loading..."> 
@@ -490,7 +528,37 @@
         <table id="tableDemeritSearch" data-show-toggle="true" data-show-columns="true" data-detail-view="true" data-search="true" data-id-field="id"></table>        
         
       </div>
+      <div class="screen" id="demeritTotalsSearch">
+        <form id="demeritTotalsSearchForm" class="form-horizontal">
+          <fieldset id="demeritTotalsSearchFieldset">
+              
+             <label  class="control-label col-lg-2"></label> 
+             <h2 class="col-lg-10 form-group">Demerit Totals Search</h2> 
+              
+            <!--<label for="student_id" class="control-label col-lg-2">Student ID</label>-->
+            <!--<div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata"></div>-->
+            
+            <!--<label for="studentFirstName" class="control-label col-lg-2">Student First Name</label>-->
+            <!--<div class="col-lg-10 form-group"><input id="studentFirstName" name="studentFirstName" maxlength="25" class="form-control ltdata"></div>-->
 
+            <!--<label for="studentLastName" class="control-label col-lg-2">Last Name</label>-->
+            <!--<div class="col-lg-10 form-group"><input id="studentLastName" name="studentLastName" maxlength="25" class="form-control ltdata"></div> -->
+
+            <!--<label for="gradeLevel" class="control-label col-lg-2">Student Grade Level</label>-->
+            <!--<div class="col-lg-10 form-group"><input id="gradeLevel" name="gradeLevel" maxlength="25" class="form-control ltdata"></div>-->
+
+
+            <label for="demeritTotalsSearchButtons" class="control-label col-lg-2"></label>
+            <div id="demeritTotalsSearchButtons" class="form-group col-lg-10">
+                <button type="reset" class="btn btn-default">Cancel</button>
+                <button id="demeritTotalsSearchButton" type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            </fieldset>
+        </form>
+        
+        <table id="tableDemeritTotalsSearch" data-show-toggle="true" data-show-columns="true" data-filter-control="true" data-show-export="true" data-search="true"  data-id-field="id"></table>        
+        
+      </div>
       <div class="screen" id="absenceSearch">
         <form id="absenceSearchForm" class="form-horizontal">
           <fieldset id="absenceSearchFieldset">
@@ -609,10 +677,12 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title">Modal title</h4>
+        <h4 class="modal-title">hmmm...something's not right</h4>
       </div>
       <div class="modal-body">
-        <p>One fine body…</p>
+        <p>If you're seeing this, some error occurred and a valid response was not received from the, very possibly due to your login having timed-out.  We're working on implementing a better app awareness of you're logged-in state, but it's not in place yet. <br><br>
+            Please refresh the app/page (copy any important form data first), log in, and try it again.
+        </p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -671,6 +741,7 @@ function patchData(resource,key,columnData) {
                         // $("#notification").show();
                         showModal(response.result, response.message);
                         $("#profileButton").prop("disabled",false);
+                        $("#editSectionButton").prop("disabled",false);
                     });
         
         };
@@ -764,6 +835,27 @@ function patchData(resource,key,columnData) {
            return false;
        });
        
+       
+       
+       
+       $("#editSectionButton").on("click", function() {
+           console.log("editSectionButton.click");
+           
+           var key = $("#editSectionForm input[id='id']").val();
+           var formData ={};
+           $('#editSectionForm input.ltdata').filter(':enabled').each(function(){
+                formData[$(this).attr("id")] = $(this).val();
+            });
+           patchData('Section',key,formData);
+           $("#editSectionButton").prop("disabled",true);
+           $('html, body').animate({scrollTop: '0px'}, 300);
+           return false;
+       });
+       
+
+
+
+
 
  
        $("#commLogButton").on("click", function() {
@@ -800,6 +892,22 @@ function patchData(resource,key,columnData) {
            searchStudents(params);
            return false;
        });
+
+       $("#demeritTotalsSearchButton").on("click", function() {
+           var formValues = $("#demeritTotalsSearchForm").serializeArray();
+           var params = {};
+           $.each(formValues, function(i,v) {
+              if (v.value != "") {
+                  params[v.name] = v.value;
+              } 
+           });
+           searchDemeritTotals(params);
+           return false;
+       });
+
+
+
+
 
        $("#communicationLogSearchButton").on("click", function() {
            var formValues = $("#communicationLogSearchForm").serializeArray();
@@ -873,6 +981,16 @@ function patchData(resource,key,columnData) {
        
             
         $("ul.nav li a").on("click", function() {
+          // 
+        //   if (typeof gapi !== 'undefined') {
+        //       if (gapi.hasOwnProperty("auth2")) {
+        //           if (!gapi.auth2.init().isSignedIn) {
+        //               showModal("Please log in", "The app was unable to determine that you are still logged in;  please return to the home page and log in again.");
+        //               signOut();
+        //               showScreen("#home");
+        //           }
+        //       }
+        //   }
           
           var target = $(this).attr("href");
 
@@ -1099,6 +1217,30 @@ function patchData(resource,key,columnData) {
         });
          //hideLoader('myCommunicationLogEntries');
     }   
+
+    function loadDemeritTotalsSearchResults (response) {
+
+        $('#tableDemeritTotalsSearch').bootstrapTable('destroy');
+        $('#tableDemeritTotalsSearch').bootstrapTable({
+            columns: [
+             {field: "studentId", title: "Student ID", sortable: true},
+             {field: "studentFullName", title: "Student Name", sortable: true},
+             {field: "studentEmail", title: "Student Email", sortable: true},
+             {field: "gradeLevel", title: "Grade Level", "filterControl": "select", sortable: true},
+             {field: "demeritCount", title: "Total", sortable: true},
+             {
+                        field: 'actions',
+                        title: 'Actions',
+                        align: 'center',
+                        events: actionEvents,
+                        formatter: actionFormatter
+                    }
+             ],   
+            data: response.data
+        });
+         //hideLoader('myCommunicationLogEntries');
+    }   
+
 
  
      function loadAbsenceSearchResults (response) {
@@ -1356,7 +1498,19 @@ function patchData(resource,key,columnData) {
                         loadDemeritSearchResults(response);
                     });
         }   
-
+        function searchDemeritTotals(params) {
+                $.post(
+                    'https://lanetech.org/api/v2/api.php/vwDemeritTotals?' + $.param(params), 
+                    
+                    { 
+                        idtoken: id_token,
+                        method: "GET"
+                    
+                    },
+                    function(response) {
+                        loadDemeritTotalsSearchResults(response);
+                    });
+        }   
         
         function searchAbsence(params) {
                 $.post(
@@ -1452,12 +1606,19 @@ function patchData(resource,key,columnData) {
         var sortedData = response.data.sort(function(a, b){
             	return a.period - b.period;
         });
+        
+        $.each(sortedData, function(i,v) {
+            sortedData[i]["editSectionId"] = v.sectionId;
+        })
+        
         displayTable( 
             [ 
                 {column: 'period', header: 'Period'},
+                {column: 'room', header: 'Room'},
                 {column: 'courseCode', header: 'Course Code'},
                 {column: 'courseName', header: 'Course Name'},
                 {column: 'number', header: 'Section Number'},
+                {column: 'editId', header: 'Edit'}
                 
             ],
             sortedData,
@@ -1593,6 +1754,13 @@ function patchData(resource,key,columnData) {
             var tbody = $("<tbody>");
             var row = $("<tr>");
             var cell;
+            var editLink = $("<a>");
+            editLink.addClass("editSection");
+            editLink.attr("href","javascript:void(0)");
+            editLink.attr("title", "Edit Section");
+            editLink.html('<i class="glyphicon glyphicon-edit"></i>');
+            editLink.attr("data-id");
+
             //console.log(columns);
             $.each(columns, function(i, v) {
                 //console.log(v);
@@ -1607,6 +1775,7 @@ function patchData(resource,key,columnData) {
                 row = $("<tr>");
                 $.each(columns, function(idx, val) {
                     cell = $("<td>");
+                    
                     cell.text(v[val["column"]]);
                     row.append(cell);
                 // $.each(v, function(key,val) {
@@ -1699,7 +1868,25 @@ function patchData(resource,key,columnData) {
                 window[responseHandler]);      
     }
     
-
+    function loadEditForm (strResource, strKey) {
+        // handle to form
+        var editForm = $("#edit" + strResource + "Form");
+        
+        // get data
+        getData("vwEdit" + strResource, strKey, function (response) { 
+            if (response.data.length > 1) {
+                showModal("Error", "An error occurred while retrieving data for this item.");
+                return false;
+            }
+            var record = response.data[0];
+            // load into form
+            $.each(record, function(k,v) {
+                editForm.find("#" + k).val(v);
+            });
+            // show screen
+            showScreen("#edit" + strResource);
+        });
+    }
     
     
     
@@ -1981,6 +2168,7 @@ function patchData(resource,key,columnData) {
         displayTable( 
             [ 
                 {column: 'period', header: 'Period'},
+                {column: 'room', header: 'Room'},
                 {column: 'courseCode', header: 'Course Code'},
                 {column: 'courseName', header: 'Course Name'},
                 {column: 'sectionNumber', header: 'Section Number'},

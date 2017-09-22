@@ -264,6 +264,19 @@
             <li><a href="#myDemeritEntries">Demerits</a></li>
           </ul>
         </li>
+        
+        <li class="dropdown attendance">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">Attendance<span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#demeritTotalsSearch">Student Demerit Totals</a></li>
+          </ul>
+        </li>
+        
+        
+        
+        
+        
+        
         <li><a style="background-color:green; color: white;" target="blank" href="https://docs.google.com/forms/d/e/1FAIpQLSeNl9iwtazJmHZxGN6gsG4RSJh2RRIGPDOuAk-e2d4N8_kL1A/viewform">Feedback</a></li>
         
       </ul>
