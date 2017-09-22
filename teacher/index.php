@@ -834,10 +834,6 @@ function patchData(resource,key,columnData) {
            $('html, body').animate({scrollTop: '0px'}, 300);
            return false;
        });
-       
-       
-       
-       
        $("#editSectionButton").on("click", function() {
            console.log("editSectionButton.click");
            
@@ -851,12 +847,6 @@ function patchData(resource,key,columnData) {
            $('html, body').animate({scrollTop: '0px'}, 300);
            return false;
        });
-       
-
-
-
-
-
  
        $("#commLogButton").on("click", function() {
            if ($("#commLogForm #dateTime").val() == "") {   
@@ -905,10 +895,6 @@ function patchData(resource,key,columnData) {
            return false;
        });
 
-
-
-
-
        $("#communicationLogSearchButton").on("click", function() {
            var formValues = $("#communicationLogSearchForm").serializeArray();
            var params = {};
@@ -932,7 +918,6 @@ function patchData(resource,key,columnData) {
            searchDemerits(params);
            return false;
        });
-
 
        $("#staffSearchButton").on("click", function() {
            var formValues = $("#staffSearchForm").serializeArray();
@@ -979,6 +964,11 @@ function patchData(resource,key,columnData) {
            return false;
        });        
        
+        $('body').on('click', 'a.editItem', function() {
+            loadEditForm($(this).attr("data-resource"),$(this).attr("data-id"));
+        });
+ 
+ 
             
         $("ul.nav li a").on("click", function() {
           // 
@@ -1608,7 +1598,7 @@ function patchData(resource,key,columnData) {
         });
         
         $.each(sortedData, function(i,v) {
-            sortedData[i]["editSectionId"] = v.sectionId;
+            sortedData[i]["edit-Section-id"] = v.sectionId;
         })
         
         displayTable( 
@@ -1618,7 +1608,7 @@ function patchData(resource,key,columnData) {
                 {column: 'courseCode', header: 'Course Code'},
                 {column: 'courseName', header: 'Course Name'},
                 {column: 'number', header: 'Section Number'},
-                {column: 'editId', header: 'Edit'}
+                {column: 'edit-Section-id', header: 'Edit'}
                 
             ],
             sortedData,
@@ -1755,11 +1745,12 @@ function patchData(resource,key,columnData) {
             var row = $("<tr>");
             var cell;
             var editLink = $("<a>");
-            editLink.addClass("editSection");
+            editLink.addClass("editItem");
             editLink.attr("href","javascript:void(0)");
             editLink.attr("title", "Edit Section");
-            editLink.html('<i class="glyphicon glyphicon-edit"></i>');
+            editLink.html('<i class="glyphicon glyphicon-pencil"></i>');
             editLink.attr("data-id");
+            editLink.attr("data-resource");
 
             //console.log(columns);
             $.each(columns, function(i, v) {
@@ -1774,9 +1765,18 @@ function patchData(resource,key,columnData) {
             $.each(data, function(i,v) {
                 row = $("<tr>");
                 $.each(columns, function(idx, val) {
+                    console.log(idx, val);
                     cell = $("<td>");
-                    
-                    cell.text(v[val["column"]]);
+                    if (val["column"].indexOf("edit-") > -1) {   // add an edit link
+                        // assumes column name format edit-<table>-<key>
+                        var cellEditLink = editLink.clone();
+                        cellEditLink.attr("data-resource",val["column"].split("-")[1]);
+                        cellEditLink.attr("data-id", v[val["column"]]);
+                        cell.append(cellEditLink);
+                    }
+                    else {
+                        cell.text(v[val["column"]]);
+                    }
                     row.append(cell);
                 // $.each(v, function(key,val) {
                 //      cell = $("<td>");
