@@ -218,7 +218,7 @@
              <h2 class="col-lg-10 form-group">Create Demerit Entry</h2> 
               
             <label for="student_id" class="control-label col-lg-2">Student ID</label>
-            <div class="col-lg-10 form-group"><input list="commLogStudents" id="student_id" name="student_id" maxlength="25" class="form-control ltdata"></div>
+            <div class="col-lg-10 form-group"><input list="commLogStudents" id="student_id" name="student_id" maxlength="25" class="form-control ltdata" list="commLogStudents"></div>
             
             
             
@@ -310,6 +310,7 @@
       <div class="screen" id="studentDetail">
           <div class="container">
           <h2></h2>
+          <input type="hidden" id="id" name="id">
           <div class="panel-group" id="studentDetailAccordion">
                   <div class="panel panel-default">
     			    <div class="panel-heading">
@@ -369,6 +370,8 @@
     			          <a data-toggle="collapse" data-parent="#studentDetailAccordion" href="#studentCommunicationLogEntries">
     			        <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>&nbsp;&nbsp;Communication Log Entries</a>&nbsp;&nbsp;
     			        <span id="badgeCommunicationLogEntriesCount" class="badge">4</span>
+    			      <a class="studentDetailCommLogEntry" href="javascript:void(0)" title="Communication Log Form"><i class="glyphicon glyphicon-comment"></i></a>
+    			      
     			      </h4>
     			    </div>
     			    <div id="studentCommunicationLogEntries" class="panel-collapse collapse">
@@ -461,7 +464,7 @@
              <h2 class="col-lg-10 form-group">Communication Log Search</h2> 
               
             <label for="student_id" class="control-label col-lg-2">Student ID</label>
-            <div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata"></div>
+            <div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata" list="commLogStudents"></div>
             
             <label for="studentFirstName" class="control-label col-lg-2">Student First Name</label>
             <div class="col-lg-10 form-group"><input id="studentFirstName" name="studentFirstName" maxlength="25" class="form-control ltdata"></div>
@@ -499,7 +502,7 @@
              <h2 class="col-lg-10 form-group">Demerit Search</h2> 
               
             <label for="student_id" class="control-label col-lg-2">Student ID</label>
-            <div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata"></div>
+            <div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata" list="commLogStudents"></div>
             
             <label for="studentFirstName" class="control-label col-lg-2">Student First Name</label>
             <div class="col-lg-10 form-group"><input id="studentFirstName" name="studentFirstName" maxlength="25" class="form-control ltdata"></div>
@@ -567,7 +570,7 @@
              <h2 class="col-lg-10 form-group">Student Absence Search</h2> 
               
             <label for="student_id" class="control-label col-lg-2">Student ID</label>
-            <div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata"></div>
+            <div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata" list="commLogStudents"></div>
             
             <label for="studentFirstName" class="control-label col-lg-2">Student First Name</label>
             <div class="col-lg-10 form-group"><input id="studentFirstName" name="studentFirstName" maxlength="25" class="form-control ltdata"></div>
@@ -788,7 +791,11 @@ function patchData(resource,key,columnData) {
         };
 
         
-        
+         function checkResponseError (response) {
+            if (response["result"] == "error") {
+                showModal(response["result"],response["message"]);
+            }
+        }
         
         
         
@@ -803,11 +810,7 @@ function patchData(resource,key,columnData) {
                     },
                     function(response) {
                         console.log(response);
-                        
-                        
-                        
                     });
-        
             }     
 
     
@@ -821,7 +824,11 @@ function patchData(resource,key,columnData) {
         
         getPublicData('vwDayBellSchedules',loadBellSchedule);
         
-        
+        $(".studentDetailCommLogEntry").on("click", function() {
+            console.log($(this));
+            var student_id = $("#studentDetail input[id='id']").val();
+            showCommLogEntryForm(student_id);
+        });   
         
         $("#profileButton").on("click", function() {
            var key = $("input[id='id']").val();
@@ -1022,6 +1029,7 @@ function patchData(resource,key,columnData) {
                     
                     },
                     function(response) {
+                        checkResponseError(response);
                         $.each(response.data, function(i,v){
                             $("#selDepartment").append('<option value=' + v["id"] +'>' + v["name"] + '</option>');
                         })
@@ -1030,6 +1038,12 @@ function patchData(resource,key,columnData) {
                     })
         
             }
+        
+        
+       
+        
+        
+        
          
          
         //setTimeout(loadFilterValues,3000); 
@@ -1371,6 +1385,11 @@ function patchData(resource,key,columnData) {
              {field: "period", title: "Period", "filterControl": "select", sortable: true},
              {field: "sectionNumber", title: "Section", sortable: true},
              {field: "email", title: "Email", sortable: true},
+             {field: "parent1Name", title: "Parent 1 Name", visible: false, sortable: true},
+             {field: "parent1Relation", title: "Parent 1 Relation", visible: false, sortable: true},
+             {field: "parent1Email", title: "Parent 1 Email", visible: false, sortable: true},
+             {field: "parent1Phone", title: "Parent 1 Phone", visible: false, sortable: true},
+             {field: "parent1Cell", title: "Parent 1 Cell", visible: false, sortable: true},
              {
                         field: 'actions',
                         title: 'Actions',
@@ -1443,6 +1462,7 @@ function patchData(resource,key,columnData) {
                     
                     },
                     function(response) {
+                        checkResponseError(response);
                         loadCoursesAndStudents(response.data,"tableStudentSearch");
                     });
             } 
@@ -1457,6 +1477,7 @@ function patchData(resource,key,columnData) {
                     
                     },
                     function(response) {
+                        checkResponseError(response);
                         loadCoursesAndStudents(response.data,"tableStaffSearch");
                     });
         }  
@@ -1471,6 +1492,7 @@ function patchData(resource,key,columnData) {
                     
                     },
                     function(response) {
+                        checkResponseError(response);
                         loadCommunicationLogSearchResults(response);
                     });
         }   
@@ -1485,6 +1507,7 @@ function patchData(resource,key,columnData) {
                     
                     },
                     function(response) {
+                        checkResponseError(response);
                         loadDemeritSearchResults(response);
                     });
         }   
@@ -1498,6 +1521,7 @@ function patchData(resource,key,columnData) {
                     
                     },
                     function(response) {
+                        checkResponseError(response);
                         loadDemeritTotalsSearchResults(response);
                     });
         }   
@@ -1512,6 +1536,7 @@ function patchData(resource,key,columnData) {
                     
                     },
                     function(response) {
+                        checkResponseError(response);
                         loadAbsenceSearchResults(response);
                     });
         }   
@@ -1526,6 +1551,7 @@ function patchData(resource,key,columnData) {
                     
                     },
                     function(response) {
+                        checkResponseError(response);
                         var studentData = response.data;
                         $.each(studentData, function(i,v) {
                             studentData[i]["email"] = studentData[i]["studentUsername"] + "@cps.edu";
@@ -1765,7 +1791,7 @@ function patchData(resource,key,columnData) {
             $.each(data, function(i,v) {
                 row = $("<tr>");
                 $.each(columns, function(idx, val) {
-                    console.log(idx, val);
+                    //console.log(idx, val);
                     cell = $("<td>");
                     if (val["column"].indexOf("edit-") > -1) {   // add an edit link
                         // assumes column name format edit-<table>-<key>
@@ -1775,7 +1801,7 @@ function patchData(resource,key,columnData) {
                         cell.append(cellEditLink);
                     }
                     else {
-                        cell.text(v[val["column"]]);
+                        cell.html(v[val["column"]]);
                     }
                     row.append(cell);
                 // $.each(v, function(key,val) {
@@ -1858,6 +1884,7 @@ function patchData(resource,key,columnData) {
     
     
     function getData(resource, key, responseHandler) {
+        console.log("getData");
         var url = 'https://lanetech.org/api/v2/api.php/' + resource + (key!=0 ? '/' + key : '');
         $.post(
                 url, 
@@ -1985,6 +2012,7 @@ function patchData(resource,key,columnData) {
         var studentBasic=response["data"][0];
         //$("#studentDetail").append(JSON.stringify(studentBasic));
         $("#studentDetail h2").text(studentBasic.lastName + ", " + studentBasic.firstName + ": " + studentBasic.id);
+        $("#studentDetail input[id='id']").val(studentBasic.id);
        
     }
     
@@ -2012,7 +2040,10 @@ function patchData(resource,key,columnData) {
         el.append($("<br>"));
         el.append("Cell: " + contact.cell);
         el.append($("<br>"));        
-        el.append("Email: " + contact.email);
+        el.append("Email: " + contact.email );
+        if (contact.email.indexOf('@') > -1) {
+            el.append(" " + getGoogleMailToHtml(contact.email,''));
+        }
         return el;
     }
     
@@ -2140,11 +2171,11 @@ function patchData(resource,key,columnData) {
         
         tbody.append('<tr><td>Room</td><td>' + div["room"] + '</td></tr>');
         tbody.append('<tr><td>Teacher Name</td><td>' + div["divisionTeacherName"] + '</td></tr>');
-        tbody.append('<tr><td>Teacher Email</td><td>' + div["divisionTeacherEmail"] + '</td></tr>');
+        tbody.append('<tr><td>Teacher Email</td><td>' + div["divisionTeacherEmail"] + ' <a target="blank" href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=' + div["divisionTeacherEmail"] + '&tf=1&su=' + div["studentName"] + ': ' + div["studentId"] + '"><i class="glyphicon glyphicon-envelope"></i></a></td></tr>');
         tbody.append('<tr><td>Counselor Name</td><td>' + div["divisionCounselorName"] + '</td></tr>');
-        tbody.append('<tr><td>Counselor Email</td><td>' + div["divisionCounselorEmail"] + '</td></tr>');
-        tbody.append('<tr><td>Attendance Name</td><td>' + div["divisionAttenanceName"] + '</td></tr>');
-        tbody.append('<tr><td>Attendance Email</td><td>' + div["divisionAttendanceEmail"] + '</td></tr>');
+        tbody.append('<tr><td>Counselor Email</td><td>' + div["divisionCounselorEmail"] + ' <a target="blank" href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=' + div["divisionCounselorEmail"] + '&tf=1&su=' + div["studentName"] + ': ' + div["studentId"] + '"><i class="glyphicon glyphicon-envelope"></i></a></td></tr>');
+        tbody.append('<tr><td>Attendance Name</td><td>' + div["divisionAttendanceName"] + '</td></tr>');
+        tbody.append('<tr><td>Attendance Email</td><td>' + div["divisionAttendanceEmail"] + ' <a target="blank" href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=' + div["divisionAttendanceEmail"] + '&tf=1&su=' + div["studentName"] + ': ' + div["studentId"] + '"><i class="glyphicon glyphicon-envelope"></i></a></td></tr>');
         
         t.append(tbody);
         
@@ -2154,6 +2185,13 @@ function patchData(resource,key,columnData) {
         
         hideLoader('studentDivisionInformation');
     }
+    
+    
+    function getGoogleMailToHtml (to, subject) {
+        return '<a target="blank" href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=' + to + '&tf=1&su=' + subject + '"><i class="glyphicon glyphicon-envelope"></i></a>';
+    }
+    
+    
     
     function loadStudentCourseSections(response) {
         var data = response.data;
@@ -2165,6 +2203,9 @@ function patchData(resource,key,columnData) {
             	return compare1 - compare2;
         });
         console.log(sortedData);
+        $.each(sortedData, function(i,v) {
+            v["teacherFullName"] += " " + getGoogleMailToHtml(v["teacherUsername"] + '@cps.edu',v["studentFullName"] + ": " + v["studentId"]);
+        });
         displayTable( 
             [ 
                 {column: 'period', header: 'Period'},
@@ -2172,7 +2213,7 @@ function patchData(resource,key,columnData) {
                 {column: 'courseCode', header: 'Course Code'},
                 {column: 'courseName', header: 'Course Name'},
                 {column: 'sectionNumber', header: 'Section Number'},
-                {column: 'teacherLastName', header: 'Teacher'}
+                {column: 'teacherFullName', header: 'Teacher'}
                 
             ],
             sortedData,

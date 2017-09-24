@@ -32,7 +32,7 @@
             user["username"] = profile.getEmail().split("@")[0];
             
             if (user["username"] == 'dphayes') {
-              user["username"] = 'jbsolin';
+              user["username"] = 'meshannon';
             }
     
             id_token = googleUser.getAuthResponse().id_token;            
