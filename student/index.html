@@ -1,8 +1,323 @@
-<?php 
-    //require_once getenv('init_path');
-    require "../_apphead.php";
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="google-signin-client_id" content="466686405732-8e9j1kgs5bo1uu41pc4gkltlhonbka70.apps.googleusercontent.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://apis.google.com/js/platform.js"></script>
+    <!-- bootswatch cosmo theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cosmo/bootstrap.min.css">
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     
-    ?>
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+      var inactivityTimer, logOutTimer;
+      
+     
+      
+      
+      function promptToStayLoggedIn() {
+          logOutTimer = setTimeout(signOut,(1000*60*5)); 
+          showModal("Are you still using the app?", "Because there's been no activity, we'll log you out shortly.  If you want to stay logged in, click the <strong>Close</strong> button>");
+      }
+      
+      
+      
+      
+      
+      var GoogleAuth; // Google Auth object.
+    
+      var id_token;
+      var permissions = [];
+      var user = {};
+      
+      function onSignIn(googleUser) {
+            inactivityTimer = setTimeout(promptToStayLoggedIn,(1000*60*30)); 
+
+            console.log(googleUser);
+            console.log( "signedin");
+            // Useful data for your client-side scripts:
+            var profile = googleUser.getBasicProfile();
+            var name = profile.getName();
+            console.log("Name: " + name);
+            $("#userFullName .name").text(name);
+            $("#user").show();
+
+            user["email"] = profile.getEmail();
+            user["username"] = profile.getEmail().split("@")[0];
+            
+            if (user["username"] == "dphayes") {
+              user["username"] = "acarbajal13";
+            }
+            
+            
+            id_token = googleUser.getAuthResponse().id_token;          
+            
+            $.post(
+                    'https://lanetech.org/api/v2/api.php/Student/?username=' + user["username"], 
+                    
+                    { 
+                        idtoken: id_token,
+                        method: "GET"
+                    
+                    },
+                    function(response) {
+                        console.log('*******');
+                        console.log(response.data[0]);
+                        studentId = response.data[0].id;
+                        getStudentDetail(studentId);
+                        showScreen("#studentDetail");
+                        loadLostAndFoundCategories();
+                    });
+    
+           
+            
+    
+  
+           
+            $("#signInMessage").hide();
+        };
+
+        gapi.load('auth2', function() {
+            console.log("gapi.load");
+            gapi.auth2.init({
+              client_id: '466686405732-8e9j1kgs5bo1uu41pc4gkltlhonbka70.apps.googleusercontent.com'
+
+            }).then(function(auth2) {
+                //GoogleAuth = auth2.getAuthInstance();
+                auth2.isSignedIn.listen(signinChanged);
+                console.log( "signed in: " + auth2.isSignedIn.get() );  
+                if(!auth2.isSignedIn.get()) {
+                  // var button = document.querySelector('#signInButton');
+                  //   button.addEventListener('click', function() {
+                  //     auth2.signIn();
+                  //   });
+                 $("#signOut").hide();
+                }
+                else {
+                   showScreen('#home');
+                   $("#signOut").show();
+                   //$("#signInButton").hide();
+                }
+                
+                
+                
+            });
+        });
+        
+        
+        function signOut() {
+          GoogleAuth = null;
+          var auth2 = gapi.auth2.getAuthInstance();
+          auth2.signOut().then(function () {
+            console.log('User signed out.');
+            
+            $("#user").hide();
+            hideModal();
+            showScreen('#home');
+            id_token = "";
+            $("input").val("");
+          });
+          $("#signInMessage").show();
+        }
+        
+        
+        
+        function checkAccessToken (strToken) {
+          $.get(
+              "https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=" + strToken,
+              function (response) {
+                return
+                
+              });
+          
+          
+        }
+        
+
+    </script>
+    
+    <script>
+    var auth2; // The Sign-In object.
+    var googleUser; // The current user.
+    
+    /**
+     * Calls startAuth after Sign in V2 finishes setting up.
+     */
+    var appStart = function() {
+      console.log('appStart');
+      gapi.load('auth2', initSigninV2);
+    };
+    
+    /**
+     * Initializes Signin v2 and sets up listeners.
+     */
+    var initSigninV2 = function() {
+      console.log('initSigninV2');
+      auth2 = gapi.auth2.init({
+          client_id: '466686405732-8e9j1kgs5bo1uu41pc4gkltlhonbka70.apps.googleusercontent.com'
+        //   ,
+        //   scope: 'profile'
+      });
+    
+      // Listen for sign-in state changes.
+      auth2.isSignedIn.listen(signinChanged);
+    
+      // Listen for changes to current user.
+      auth2.currentUser.listen(userChanged);
+    
+      // Sign in the user if they are currently signed in.
+      if (auth2.isSignedIn.get() == true) {
+        auth2.signIn();
+      }
+    
+      // Start with the current live values.
+      refreshValues();
+    };
+    
+    /**
+     * Listener method for sign-out live value.
+     *
+     * @param {boolean} val the updated signed out state.
+     */
+    var signinChanged = function (val) {
+      console.log('Signin state changed to ' + val);
+      if (val) {
+        $("#signOut").show();
+        showScreen("#home");
+      }
+      //document.getElementById('signed-in-cell').innerText = val;
+    };
+    
+    /**
+     * Listener method for when the user changes.
+     *
+     * @param {GoogleUser} user the updated user.
+     */
+    var userChanged = function (user) {
+      console.log('User now: ', user);
+      googleUser = user;
+      refreshValues();
+      //updateGoogleUser();
+    //   document.getElementById('curr-user-cell').innerText =
+    //     JSON.stringify(user, undefined, 2);
+    };
+    
+    /**
+     * Updates the properties in the Google User table using the current user.
+     */
+    var updateGoogleUser = function () {
+      if (googleUser) {
+        document.getElementById('user-id').innerText = googleUser.getId();
+        document.getElementById('user-scopes').innerText =
+          googleUser.getGrantedScopes();
+        document.getElementById('auth-response').innerText =
+          JSON.stringify(googleUser.getAuthResponse(), undefined, 2);
+      } else {
+        document.getElementById('user-id').innerText = '--';
+        document.getElementById('user-scopes').innerText = '--';
+        document.getElementById('auth-response').innerText = '--';
+      }
+    };
+    
+    /**
+     * Retrieves the current user and signed in states from the GoogleAuth
+     * object.
+     */
+    var refreshValues = function() {
+      if (auth2){
+        console.log('Refreshing values...');
+    
+        googleUser = auth2.currentUser.get();
+    
+        // document.getElementById('curr-user-cell').innerText =
+        //   JSON.stringify(googleUser, undefined, 2);
+        // document.getElementById('signed-in-cell').innerText =
+        //   auth2.isSignedIn.get();
+        
+        if (auth2.isSignedIn.get()) {
+            console.log("auth2.isSignedIn.get()",auth2.isSignedIn.get());
+            $("#signedIn").show();
+            $("#signIn").hide();
+        }
+        else {
+            $("#signedIn").hide();
+            $("#signIn").show();        
+        }
+    
+        updateGoogleUser();
+      }
+    }
+
+    function showScreen(strSelector) {
+       console.log(strSelector);
+          $("#notification").hide();
+          $(".screen").hide();
+          $(strSelector).show();
+    }
+
+
+
+    </script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.css">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/extensions/filter-control/bootstrap-table-filter-control.js"></script>
+    
+    <!--// table export extension -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/extensions/export/bootstrap-table-export.js"></script>
+    <script src="//rawgit.com/hhurz/tableExport.jquery.plugin/master/tableExport.js"></script>
+
+
+    <!-- Latest compiled and minified Locales -->
+    <!--<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/locale/bootstrap-table-zh-CN.min.js"></script>-->
+    <link rel="stylesheet" href="//rawgit.com/vitalets/x-editable/master/dist/bootstrap3-editable/css/bootstrap-editable.css" >
+</head>
+<body>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-2">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">LT Apps</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
+      <ul class="nav navbar-nav">
+        <li><a href="#home">Today<span class="sr-only">(current)</span></a></li>
+        
+        <li class="navTeacher"><a href="#studentDetail">My Info</a></li>
+
+      </ul>
+
+      
+      
+      <ul id="user" class="nav navbar-nav navbar-right" style="display:none;">
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true" id="userFullName"><span class="name"></span><span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <!--<li><a href="#profile">Profile</a></li>-->
+            <li class="divider"></li>
+            <li id="signOut"><a href="#home" onclick="signOut();">Logout <span class="glyphicon glyphicon-log-out" style="color:#1a6ecc;" aria-hidden="true"></span></a></li>
+            
+            <!--<li><a href="#">Separated link</a></li>-->
+            <!--<li class="divider"></li>-->
+            <!--<li><a href="#">One more separated link</a></li>-->
+          </ul>
+        </li>
+        
+        <!--<li id="signIn"><div id="signInButton" class="g-signin2" data-onsuccess="onSignIn"></div></li>-->
+      </ul>
+    </div>
+  </div>
+</nav>
 <style>
     .screen {display:none; padding-top: 60px;}
     .media {border: solid 1px #dddddd; margin:10px; padding:10px;}
@@ -13,71 +328,11 @@
       <!--<button type="button" class="close" data-dismiss="alert">&times;</button>-->
       <strong>Well done!</strong> <p></p>
     </div>
-<!--<ul class="nav nav-tabs">-->
-<!--  <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Home</a></li>-->
-<!--  <li class=""><a href="#profile" data-toggle="tab" aria-expanded="false">Profile</a></li>-->
-<!--  <li class="disabled"><a>Disabled</a></li>-->
-<!--  <li class="dropdown">-->
-<!--    <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">-->
-<!--      Dropdown <span class="caret"></span>-->
-<!--    </a>-->
-<!--    <ul class="dropdown-menu">-->
-<!--      <li><a href="#dropdown1" data-toggle="tab">Action</a></li>-->
-<!--      <li class="divider"></li>-->
-<!--      <li><a href="#dropdown2" data-toggle="tab">Another action</a></li>-->
-<!--    </ul>-->
-<!--  </li>-->
-<!--</ul>-->
     <div id="screens" class="tab-content">
       <div class="screen fade active in" id="home">
             <h2 id="signInMessage">Sign in with your @cps account.</h2>
             <div class="g-signin2" data-onsuccess="onSignIn" data-prompt="select_account"></div>
-        <div class="panel-group">
-          <div class="panel panel-success">
-            <div class="panel-heading">
-              <h4 class="panel-title">
-                
-                <a data-toggle="collapse" href="#appUpdate">
-                    <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> <strong>Apps update 09/26/2017 10:45</strong></a>
-              </h4>
-            </div>
-            <div id="appUpdate" class="panel-collapse collapse">
-              <div class="panel-body">
-                  <strong>Apps update 09/26/2017 10:45</strong>
-                  <p>The new "notify, then logout" functionality to handle the Google Authentication timeout seems to be working.<br><br>
-                      Based on suggestion, we've added the communication log entries from prior years to the student detail, in a section labeled <strong>Archive Communication Log Entries</strong>.
-                      <br><br>
-                      Also based on suggestion, student pictures now appear on the student detail page.
-                    </p>
-                  <strong>Apps update 09/25/2017 08:15</strong>
-                  <p>We're testing a feature to notify users when their Google Authentication is expiring so they can stay logged on; hopefully, this reduces some confusing errors.<br><br>
-                      Based on suggestion, we've added email links on the student detail page for teachers, counselor, attendance and contacts.  These links will open Gmail.
-                      <br><br>
-                      Based on another suggestion, we've added primary parent contact info to the student listings (My Students and Student Search);  in order to preserve space, they are hidden by default, but you can use the "columns chooser" button above the table to choose to display them.
-                  </p>
-                  <strong>Apps update 09/18/2017 08:20</strong>
-                  <p>Keep those suggestions coming;  the goal is to make this a tool that's useful for teachers and staff.<br><br>
-                  Several improvements over the past few days:  communication log search, and display on student detail; absence information search, and display on student detail; filter controls on many tables (e.g., "My Students"); data update to fix student grade levels; and a few more </p>
-                  <p>This will be under <strong>active</strong> development for another week or two;  after that, updates will be developed in the next version. </p>
-                  
-                  
-                  <strong>Apps update 09/13/2017 11:00</strong><p>This application is part of an effort to reduce the number
-                  of tools and datasources related to accomplishing our work 
-                  at Lane Tech.
-                  </p><p></p>
-                  It's very much under active development, and you may see some changes
-                  over the next couple of weeks as users provide feedback to improve and
-                  add features.
-                  </p><p>
-                  Please use the feedback link in the navbar to let us know about issues and suggestions.
-                  </p><p>
-                  
-                  There's a currently known issue related to the navbar scrolling off screen on certain pages.
-                  </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        
           
           <h2 id="date"></h2>
           <div id="bellSchedulePanel" class="panel panel-default">
@@ -88,237 +343,11 @@
             </div>
     
       </div>
-      <div class="screen" id="myStudents">
-          <h2>My Students</h2>
-          <table id="tableStudents" data-show-toggle="true" data-show-columns="true" data-search="true" data-show-export="true" data-id-field="studentId" data-detail-view="true" data-filter-control="true" ></table>
+      <div class="screen" id="myDemerits">
+          <h2>My Demerits</h2>
+          <table id="tableDemerits" data-show-toggle="true" data-id-field="studentId"  ></table>
       </div>
-      <div class="screen" id="resources">
-        <h2>Resources</h2>
-        <div class="panel-group" id="accordion">
-    			  <!-- unsubmitted attendance -->
-    			  <div class="panel panel-default">
-    			    <div class="panel-heading">
-    			      <h4 class="panel-title">
-    			          <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>&nbsp;&nbsp;<a data-toggle="collapse" data-parent="#accordion" href="#collapse1" class="" aria-expanded="true">Unsubmitted Attendance & Attendance Corrections</a>
-    			      </h4>
-    			    </div>
-    			    <div id="collapse1" class="panel-collapse collapse" aria-expanded="true" style="">
-    			      <div class="panel-body">
-    
-                    A report for unsubmitted attendance will be run daily approximately 10 minutes after the beginning of 8th period.  Teachers receiving an email should complete the <a href="https://docs.google.com/a/cps.edu/forms/d/1LorJwgoZ-JsyPcFJc5A8h0gJsBFLwl5gr-h86sXhD7w/viewform" target="_blank">Unsubmitted Attendance</a> form and schedule a meeting with the Assistant Principal over their department for the following day to ensure that the corrections are made.<br><br>
-                    If you have make a correction to previously submitted attendance, please submit the changes for each student on the <a href="https://docs.google.com/a/cps.edu/forms/d/1LorJwgoZ-JsyPcFJc5A8h0gJsBFLwl5gr-h86sXhD7w/viewform" target="_blank">Attendance Correction</a> form within 1 week of the error.  Please do not wait until the end of the marking period to make corrections.
-    			      </div>
-    			    </div>
-    			  </div>
-    			  
-    			  
-    			  
-    			  
-    			  <!-- Tech Support -->
-    			  <div class="panel panel-default">
-    			    <div class="panel-heading">
-    			      <h4 class="panel-title">
-    			          <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>&nbsp;&nbsp;<a data-toggle="collapse" data-parent="#accordion" href="#collapse2" class="collapsed" aria-expanded="false">Tech Support</a>
-    			      </h4>
-    			    </div>
-    			    <div id="collapse2" class="panel-collapse collapse" aria-expanded="false">
-    			      <div class="panel-body">				
-                    Zen Desk - <a href="http://lanetech.zendesk.com" target="_blank"><strong>Report Issue!</strong></a><br>
-                    Lab Calendar Instructions - <a href="https://docs.google.com/a/cps.edu/document/d/1FmbHu94lSSpSNzTrSqmBx5iGntDqzAF_Z4FcOszK6t4" target="_blank">Click Here</a><br>
-    				Discounted software - <a href="http://www.microsofthup.com/hupus/home.aspx?dialect_id=en-US&country_id=US" target="_blank">Shop now!</a><br>
-                    Free MS Office 365 Education - <a href="http://office.microsoft.com/en-us/office-in-education-FX104367920.aspx" target="_blank">Click Here</a>
-                    <ul>
-                    	<li>Click link to "find out if you're eligible"</li>
-                    	<li>Type in your school email address: username@cps.edu</li>
-                        <li>Check your CPS Email for link. Email should be from Microsoft Office 365 Team.</li>
-                        <li>You may need to login or create an account.</li>
-                        <li>If you need to download for Mac, you need to be clicking on the link on a Mac Computer. If you want the PC version, click the link from a PC.</li>
-                    </ul></div>
-    			    </div>
-    			  </div>
-    			  <!-- Engineering and Building Use -->
-    			  <div class="panel panel-default">
-    			    <div class="panel-heading">
-    			      <h4 class="panel-title">
-    			          
-    			          <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
-    			          &nbsp;&nbsp; <a data-toggle="collapse" data-parent="#accordion" href="#collapse3" class="collapsed" aria-expanded="false">
-    			        Engineering & Building Use</a>
-    			      </h4>
-    			    </div>
-    			    <div id="collapse3" class="panel-collapse collapse" aria-expanded="false">
-    			      <div class="panel-body">
-    				
-                    <strong><a href="https://docs.google.com/a/cps.edu/forms/d/1kYD6O9Fte9KjgJBSkiABHiLCoNHVpRJ2F1D8nmVHjK0/viewform" target="_blank">Click here</a></strong> to report any structural issues with your classroom and/or office<br><br>
-                    <strong><a href="https://docs.google.com/a/cps.edu/document/d/1FmbHu94lSSpSNzTrSqmBx5iGntDqzAF_Z4FcOszK6t4/" target="blank">Click here</a></strong> to access the reservation calendar for shared spaces.<br><br>
-                    <!--<strong><a href="https://docs.google.com/a/cps.edu/forms/d/11GEVk-oR8tapUgfhA0q79GGG1EVtFFKQwBOMRJ4jrSI/viewform" target="_blank">Click here</a></strong> to reserve the Library Media Room (pending approval).<br><br>-->
-                    If you are using building space other than your classroom, please <!--check the <a href="http://www.google.com/calendar/embed?src=cps.edu_34a0fj4iepfs44g6l9626rri1g%40group.calendar.google.com&ctz=America/Chicago">building operations calendar</a> and then -->fill out <a href="https://docs.google.com/a/cps.edu/file/d/0B4V9Lsog04thNzFLc0JHQkdLWGM/edit?usp=sharing" target="_blank">this form</a> (requires login) and return it to Ms. Degante in the Records Office<br><br>			      	
-    			      </div>
-    			    </div>
-    			  </div>
-    			</div>
-      </div>
-      <div class="screen" id="profile">
-        <form id="profileForm" class="form-horizontal">
-          <fieldset id="profileFieldset">
-            
-            <div id="profileButtons" class="form-group col-lg-10">
-                <button type="reset" class="btn btn-default">Cancel</button>
-                <button id="profileButton" type="submit" class="btn btn-primary">Submit</button>
-            </div>
-            </fieldset>
-        </form>
-        
-      </div>
-      <div class="screen" id="commLog">
-    
-        <form id="commLogForm" class="form-horizontal">
-          <fieldset id="commLogFieldset">
-            <label  class="control-label col-lg-2"></label> 
-             <h2 class="col-lg-10 form-group">Create Communication Log Entry</h2> 
-            
-            <label for="student_id" class="control-label col-lg-2">Student ID</label>
-            <div class="col-lg-10 form-group"><input list="commLogStudents" id="student_id" name="student_id" maxlength="25" class="form-control ltdata"></div>
-            <datalist id="commLogStudents"></datalist>
-            
-            
-            <label for="dateTime" class="control-label col-lg-2">Communication Date/Time</label>
-            <div class="col-lg-10 form-group"><input  id="dateTime" type="datetime-local" name="dateTime" class="form-control ltdata"></div>
-            <label for="method" class="control-label col-lg-2">Communication Method</label>
-            <div class="col-lg-10 form-group"><input class="form-control ltdata" list="commMethods" id="method" name="method" >
-            <datalist id="commMethods" name="commMethods">
-                <option>Email</option>
-                <option>Phone</option>
-                <option>Conference</option>
-            </datalist></div>
-            <label for="category" class="control-label col-lg-2">Communication Category</label>
-            <div class="col-lg-10 form-group"><input class="form-control ltdata" list="commCategories" id="category" name="category" >
-            <datalist id="commCategories" name="commCategories">
-                <option>Academic</option>
-                <option>Arts</option>
-                <option>Athletics</option>
-                <option>Attendance</option>
-                <option>Discipline</option>
-                <option>Extra-curricular</option>
-                <option>Social/Emotional</option>
-            </datalist></div>
-            <label for="subject" class="control-label col-lg-2">Subject</label>
-            <div class="col-lg-10 form-group">
-                <input id="subject" name="subject" maxlength="50" class="form-control ltdata">
-            </div>
-            <label for="summary" class="control-label col-lg-2">Summary</label>
-            <div class="col-lg-10 form-group"><textarea  id="summary" name="summary" maxlength="1000" class="form-control ltdata" placeholder="Enter a summary of the communication (1000 characters max)"></textarea></div>
-            
-         
-            
-            <label for="commLogButtons" class="control-label col-lg-2"></label>
-            <div id="commLogButtons" class="form-group col-lg-10">
-                <button type="reset" class="btn btn-default">Cancel</button>
-                <button id="commLogButton" type="submit" class="btn btn-primary">Submit</button>
-            </div>
-            </fieldset>
-        </form>
-        
-      </div>
-      <div class="screen" id="demerit">
-        
-        
-        <form id="demeritForm" class="form-horizontal">
-          <fieldset id="demeritFieldset">
-              
-             <label  class="control-label col-lg-2"></label> 
-             <h2 class="col-lg-10 form-group">Create Demerit Entry</h2> 
-              
-            <label for="student_id" class="control-label col-lg-2">Student ID</label>
-            <div class="col-lg-10 form-group"><input list="commLogStudents" id="student_id" name="student_id" maxlength="25" class="form-control ltdata" list="commLogStudents"></div>
-            
-            
-            
-            <label for="dateTime" class="control-label col-lg-2">Date/Time of communication</label>
-            <div class="col-lg-10 form-group"><input  id="dateTime" type="datetime-local" name="dateTime" class="form-control ltdata"></div>
-            <label for="reason" class="control-label col-lg-2">Reason</label>
-            <div class="col-lg-10 form-group"><input class="form-control ltdata" list="demeritReasons" id="reason" name="reason" >
-            <datalist id="demeritReasons" name="demeritReasons">
-                <option>Dress Code</option>
-            </datalist></div>
-            <label for="comment" class="control-label col-lg-2">Comment</label>
-            <div class="col-lg-10 form-group"><textarea  id="comment" name="comment" maxlength="255" class="form-control ltdata"></textarea></div>
-            
-         
-            
-            <label for="demeritButtons" class="control-label col-lg-2"></label>
-            <div id="demeritButtons" class="form-group col-lg-10">
-                <button type="reset" class="btn btn-default">Cancel</button>
-                <button id="demeritButton" type="submit" class="btn btn-primary">Submit</button>
-            </div>
-            </fieldset>
-        </form>
-        
-      </div>
-      <div class="screen" id="editSection">
-        
-        
-        <form id="editSectionForm" class="form-horizontal">
-          <fieldset id="editSectionFieldset">
-              
-             <label  class="control-label col-lg-2"></label> 
-             <h2 class="col-lg-10 form-group">Edit Section</h2> 
-              
-            <label for="id" class="control-label col-lg-2">Section ID</label>
-            <div class="col-lg-10 form-group"><input  id="id" name="id" disabled class="form-control ltdata"></div>
-            
-            <label for="courseCode" class="control-label col-lg-2">Course Code</label>
-            <div class="col-lg-10 form-group"><input  id="courseCode" name="courseCode" disabled class="form-control ltdata"></div>
-            
-            <label for="courseName" class="control-label col-lg-2">Course Name</label>
-            <div class="col-lg-10 form-group"><input  id="courseName" name="courseName" disabled class="form-control ltdata"></div>
-            
-            
-            <label for="number" class="control-label col-lg-2">Section Number</label>
-            <div class="col-lg-10 form-group"><input  id="number" name="number" disabled class="form-control ltdata"></div>
- 
-            <label for="period" class="control-label col-lg-2">Period</label>
-            <div class="col-lg-10 form-group"><input  id="period" name="period" disabled class="form-control ltdata"></div> 
- 
-            
-            <label for="room" class="control-label col-lg-2">Room</label>
-                <div class="col-lg-10 form-group"><input  id="room" name="room" class="form-control ltdata" maxlength="10"></div>
 
-            <label for="editSectionButtons" class="control-label col-lg-2"></label>
-            <div id="editSectionButtons" class="form-group col-lg-10">
-                <button type="reset" class="btn btn-default">Cancel</button>
-                <button id="editSectionButton" type="submit" class="btn btn-primary">Submit</button>
-            </div>
-            </fieldset>
-        </form>
-        
-      </div>
-      <div class="screen" id="myDepartments">
-        <div class="container">
-           <img class="loader" src="/applications/assets/Loading_2.gif" alt="Loading..."> 
-        </div>
-      </div>
-      <div class="screen" id="myCourseSections">
-        <div class="container">
-           <img class="loader" src="/applications/assets/Loading_2.gif" alt="Loading..."> 
-        </div>
-      </div>
-      <div class="screen" id="myCommunicationLogEntries">
-        <div class="container">
-             <h2 class="col-lg-12 form-group">My Communication Log Entries</h2> 
-           <img class="loader" src="/applications/assets/Loading_2.gif" alt="Loading..."> 
-              <table id="tableCommunicationLogEntries" data-show-toggle="true" data-show-columns="true" data-search="true" data-detail-view="true" data-id-field="id"></table>
-        
-        </div>
-      </div>
-      <div class="screen" id="myDemeritEntries">
-        <div class="container">
-             <h2 class="col-lg-12 form-group">My Demerit Entries</h2> 
-           <img class="loader" src="/applications/assets/Loading_2.gif" alt="Loading..."> 
-              <table id="tableDemeritEntries" data-show-toggle="true" data-show-columns="true" data-search="true" data-detail-view="true" data-id-field="id"></table>
-        
-        </div>
-      </div>
       <div class="screen" id="studentDetail">
           <div class="container">
           <h2></h2>
@@ -379,36 +408,6 @@
     			  <div class="panel panel-default">
     			    <div class="panel-heading">
     			      <h4 class="panel-title">
-    			          <a data-toggle="collapse" data-parent="#studentDetailAccordion" href="#studentCommunicationLogEntries">
-    			        <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>&nbsp;&nbsp;Communication Log Entries</a>&nbsp;&nbsp;
-    			        <span id="badgeCommunicationLogEntriesCount" class="badge">4</span>
-    			      <a class="studentDetailCommLogEntry" href="javascript:void(0)" title="Communication Log Form"><i class="glyphicon glyphicon-comment"></i></a>
-    			      
-    			      </h4>
-    			    </div>
-    			    <div id="studentCommunicationLogEntries" class="panel-collapse collapse">
-    			      <div class="panel-body">
-    			      	
-    			      </div>
-    			    </div>
-    			  </div>
-    			  <div class="panel panel-default">
-    			    <div class="panel-heading">
-    			      <h4 class="panel-title">
-    			          <a data-toggle="collapse" data-parent="#studentDetailAccordion" href="#studentArchiveCommunicationLogEntries">
-    			        <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>&nbsp;&nbsp;Archive Communication Log Entries</a>&nbsp;&nbsp;
-    			        <span id="badgeArchiveCommunicationLogEntriesCount" class="badge">4</span>
-    			      </h4>
-    			    </div>
-    			    <div id="studentArchiveCommunicationLogEntries" class="panel-collapse collapse">
-    			      <div class="panel-body">
-    			      	
-    			      </div>
-    			    </div>
-    			  </div>
-    			  <div class="panel panel-default">
-    			    <div class="panel-heading">
-    			      <h4 class="panel-title">
     			          <a data-toggle="collapse" data-parent="#studentDetailAccordion" href="#studentDemeritEntries">
     			        <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>&nbsp;&nbsp;Demerit Entries</a>&nbsp;&nbsp;
     			        <span id="badgeDemeritCount" class="badge"></span>
@@ -436,241 +435,102 @@
     			      </div>
     			    </div>
     			  </div>
-    			  <div class="panel panel-default">
+    			  <!--<div class="panel panel-default">-->
     			    
-    			    <div id="studentImage" class="panel-collapse ">
-    			      <div class="panel-body">
+    			  <!--  <div id="studentImage" class="panel-collapse ">-->
+    			  <!--    <div class="panel-body">-->
     			      	
-    			      </div>
-    			    </div>
-    			  </div>
+    			  <!--    </div>-->
+    			  <!--  </div>-->
+    			  <!--</div>-->
     	    </div>          
     </div>
     
       </div>
-      <div class="screen" id="myTasks">
-
-      <div class="container">
-           <h2 class="col-lg-12 form-group">My Tasks</h2>
-           <div class="panel panel-warning">
-              <div class="panel-heading">Still under development</div>
-              <div class="panel-body">
-                This feature needs work, but it should be functional.<br><br>
-                The display won't automatically refresh to show your updates;  if you need to verify, you can reload the page/app.
-              </div>
-            </div>
-           <div class="screen-content">
-               <img class="loader" src="/applications/assets/Loading_2.gif" alt="Loading..."> 
-            </div>
-        </div>
-    </div>
-      <div class="screen" id="studentSearch">
-                <form id="studentSearchForm" class="form-horizontal">
-          <fieldset id="studentSearchFieldset">
+      
+      <div class="screen" id="lostAndFoundSearch">
+        <form id="lostAndFoundSearchForm" class="form-horizontal">
+          <fieldset id="lostAndFoundSearchFieldset">
               
              <label  class="control-label col-lg-2"></label> 
-             <h2 class="col-lg-10 form-group">Student Search</h2> 
+             <h2 class="col-lg-10 form-group">Search</h2> 
               
-            <label for="student_id" class="control-label col-lg-2">Student ID</label>
-            <div class="col-lg-10 form-group"><input id="id" name="id" maxlength="25" class="form-control ltdata"></div>
-            
-            <label for="firstName" class="control-label col-lg-2">First Name</label>
-            <div class="col-lg-10 form-group"><input id="firstName" name="firstName" maxlength="25" class="form-control ltdata"></div>
-            
-            <label for="lastName" class="control-label col-lg-2">Last Name</label>
-            <div class="col-lg-10 form-group"><input id="lastName" name="lastName" maxlength="25" class="form-control ltdata"></div> 
-            <label for="studentSearchButtons" class="control-label col-lg-2"></label>
-            <div id="studentSearchButtons" class="form-group col-lg-10">
-                <button type="reset" class="btn btn-default">Cancel</button>
-                <button id="studentSearchButton" type="submit" class="btn btn-primary">Submit</button>
+            <label for="status" class="control-label col-lg-2">What kind of item are you searching for?</label>
+            <div class="col-lg-10 form-group"><select id="status" name="status"  class="form-control ltdata" >
+              <option></option>
+              <option value="lost">Items that have been lost</option>
+              <option value="found">Items that have been found</option>
+              </select>
             </div>
-            </fieldset>
-        </form>
-        
-        <table id="tableStudentSearch" data-show-toggle="true" data-show-columns="true" data-search="true" data-id-field="studentId"></table>        
-        
-      </div>
-      <div class="screen" id="communicationLogSearch">
-        <form id="communicationLogSearchForm" class="form-horizontal">
-          <fieldset id="communicationLogSearchFieldset">
-              
-             <label  class="control-label col-lg-2"></label> 
-             <h2 class="col-lg-10 form-group">Communication Log Search</h2> 
-              
-            <label for="student_id" class="control-label col-lg-2">Student ID</label>
-            <div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata" list="commLogStudents"></div>
             
-            <label for="studentFirstName" class="control-label col-lg-2">Student First Name</label>
-            <div class="col-lg-10 form-group"><input id="studentFirstName" name="studentFirstName" maxlength="25" class="form-control ltdata"></div>
-
-            <label for="studentLastName" class="control-label col-lg-2">Last Name</label>
-            <div class="col-lg-10 form-group"><input id="studentLastName" name="studentLastName" maxlength="25" class="form-control ltdata"></div> 
-
-            <label for="staffFirstName" class="control-label col-lg-2">Staff First Name</label>
-            <div class="col-lg-10 form-group"><input id="staffFirstName" name="staffFirstName" maxlength="25" class="form-control ltdata"></div>
-
-            <label for="staffLastName" class="control-label col-lg-2">Staff Last Name</label>
-            <div class="col-lg-10 form-group"><input id="staffLastName" name="staffLastName" maxlength="25" class="form-control ltdata"></div>
-
-            <label for="category" class="control-label col-lg-2">Communication Category</label>
-            <div class="col-lg-10 form-group"><input class="form-control ltdata" list="commCategories" id="category" name="category" ></div>
-
-
-
-            <label for="communicationLogSearchButtons" class="control-label col-lg-2"></label>
-            <div id="communicationLogSearchButtons" class="form-group col-lg-10">
-                <button type="reset" class="btn btn-default">Cancel</button>
-                <button id="communicationLogSearchButton" type="submit" class="btn btn-primary">Submit</button>
-            </div>
-            </fieldset>
-        </form>
-        
-        <table id="tableCommunicationLogSearch" data-show-toggle="true" data-show-columns="true" data-detail-view="true" data-search="true" data-id-field="id"></table>        
-        
-      </div>
-      <div class="screen" id="demeritSearch">
-        <form id="demeritSearchForm" class="form-horizontal">
-          <fieldset id="demeritSearchFieldset">
-              
-             <label  class="control-label col-lg-2"></label> 
-             <h2 class="col-lg-10 form-group">Demerit Search</h2> 
-              
-            <label for="student_id" class="control-label col-lg-2">Student ID</label>
-            <div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata" list="commLogStudents"></div>
             
-            <label for="studentFirstName" class="control-label col-lg-2">Student First Name</label>
-            <div class="col-lg-10 form-group"><input id="studentFirstName" name="studentFirstName" maxlength="25" class="form-control ltdata"></div>
-
-            <label for="studentLastName" class="control-label col-lg-2">Last Name</label>
-            <div class="col-lg-10 form-group"><input id="studentLastName" name="studentLastName" maxlength="25" class="form-control ltdata"></div> 
-
-            <label for="staffFirstName" class="control-label col-lg-2">Staff First Name</label>
-            <div class="col-lg-10 form-group"><input id="staffFirstName" name="staffFirstName" maxlength="25" class="form-control ltdata"></div>
-
-            <label for="staffLastName" class="control-label col-lg-2">Staff Last Name</label>
-            <div class="col-lg-10 form-group"><input id="staffLastName" name="staffLastName" maxlength="25" class="form-control ltdata"></div>
-
-            <label for="reason" class="control-label col-lg-2">Reason</label>
-            <div class="col-lg-10 form-group"><input class="form-control ltdata" list="demeritReasons" id="reason" name="reason" >
-            </div>
-
-            <label for="demeritSearchButtons" class="control-label col-lg-2"></label>
-            <div id="demeritSearchButtons" class="form-group col-lg-10">
-                <button type="reset" class="btn btn-default">Cancel</button>
-                <button id="demeritSearchButton" type="submit" class="btn btn-primary">Submit</button>
-            </div>
-            </fieldset>
-        </form>
-        
-        <table id="tableDemeritSearch" data-show-toggle="true" data-show-columns="true" data-detail-view="true" data-search="true" data-id-field="id"></table>        
-        
-      </div>
-      <div class="screen" id="demeritTotalsSearch">
-        <form id="demeritTotalsSearchForm" class="form-horizontal">
-          <fieldset id="demeritTotalsSearchFieldset">
-              
-             <label  class="control-label col-lg-2"></label> 
-             <h2 class="col-lg-10 form-group">Demerit Totals Search</h2> 
-              
-            <!--<label for="student_id" class="control-label col-lg-2">Student ID</label>-->
-            <!--<div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata"></div>-->
             
-            <!--<label for="studentFirstName" class="control-label col-lg-2">Student First Name</label>-->
-            <!--<div class="col-lg-10 form-group"><input id="studentFirstName" name="studentFirstName" maxlength="25" class="form-control ltdata"></div>-->
-
-            <!--<label for="studentLastName" class="control-label col-lg-2">Last Name</label>-->
-            <!--<div class="col-lg-10 form-group"><input id="studentLastName" name="studentLastName" maxlength="25" class="form-control ltdata"></div> -->
-
-            <!--<label for="gradeLevel" class="control-label col-lg-2">Student Grade Level</label>-->
-            <!--<div class="col-lg-10 form-group"><input id="gradeLevel" name="gradeLevel" maxlength="25" class="form-control ltdata"></div>-->
-
-
-            <label for="demeritTotalsSearchButtons" class="control-label col-lg-2"></label>
-            <div id="demeritTotalsSearchButtons" class="form-group col-lg-10">
-                <button type="reset" class="btn btn-default">Cancel</button>
-                <button id="demeritTotalsSearchButton" type="submit" class="btn btn-primary">Submit</button>
-            </div>
-            </fieldset>
-        </form>
-        
-        <table id="tableDemeritTotalsSearch" data-show-toggle="true" data-show-columns="true" data-filter-control="true" data-show-export="true" data-search="true"  data-id-field="id"></table>        
-        
-      </div>
-      <div class="screen" id="absenceSearch">
-        <form id="absenceSearchForm" class="form-horizontal">
-          <fieldset id="absenceSearchFieldset">
-              
-             <label  class="control-label col-lg-2"></label> 
-             <h2 class="col-lg-10 form-group">Student Absence Search</h2> 
-              
-            <label for="student_id" class="control-label col-lg-2">Student ID</label>
-            <div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata" list="commLogStudents"></div>
-            
-            <label for="studentFirstName" class="control-label col-lg-2">Student First Name</label>
-            <div class="col-lg-10 form-group"><input id="studentFirstName" name="studentFirstName" maxlength="25" class="form-control ltdata"></div>
-
-            <label for="studentLastName" class="control-label col-lg-2">Last Name</label>
-            <div class="col-lg-10 form-group"><input id="studentLastName" name="studentLastName" maxlength="25" class="form-control ltdata"></div> 
-
-            <label for="date" class="control-label col-lg-2">Date</label>
-            <div class="col-lg-10 form-group"><input class="form-control ltdata" id="date" name="date" type="date" min="2017-09-05"></div>
-
-            <label for="limit" class="control-label col-lg-2">Max Results</label>
-            <div class="col-lg-10 form-group"><input class="form-control ltdata" id="limit" name="limit" type="text" list="listLimits" value="100">
-                <datalist name="listLimits" id="listLimits">
-                    <option>100</option>
-                    <option>1000</option>
-                </datalist>
-            </div>
-
-            <!--<label for="staffFirstName" class="control-label col-lg-2">Staff First Name</label>-->
-            <!--<div class="col-lg-10 form-group"><input id="staffFirstName" name="staffFirstName" maxlength="25" class="form-control ltdata"></div>-->
-
-            <!--<label for="staffLastName" class="control-label col-lg-2">Staff Last Name</label>-->
-            <!--<div class="col-lg-10 form-group"><input id="staffLastName" name="staffLastName" maxlength="25" class="form-control ltdata"></div>-->
-
-
-
-
-
-            <label for="absenceSearchButtons" class="control-label col-lg-2"></label>
-            <div id="absenceSearchButtons" class="form-group col-lg-10">
-                <button type="reset" class="btn btn-default">Cancel</button>
-                <button id="absenceSearchButton" type="submit" class="btn btn-primary">Submit</button>
-            </div>
-            </fieldset>
-        </form>
-        
-        <table id="tableAbsenceSearch" data-show-toggle="true" data-show-columns="true" data-detail-view="true" data-filter-control="true" data-search="true" data-id-field="id"></table>        
-        
-      </div>      
-      <div class="screen" id="staffSearch">
-        <form id="staffSearchForm" class="form-horizontal">
-          <fieldset id="staffSearchFieldset">
-              
-             <label  class="control-label col-lg-2"></label> 
-             <h2 class="col-lg-10 form-group">Staff Search</h2> 
-              
-            <label for="firstName" class="control-label col-lg-2">First Name</label>
-            <div class="col-lg-10 form-group"><input id="firstName" name="firstName" maxlength="25" class="form-control ltdata"></div>
-            
-            <label for="lastName" class="control-label col-lg-2">Last Name</label>
-            <div class="col-lg-10 form-group"><input id="lastName" name="lastName" maxlength="25" class="form-control ltdata"></div> 
+            <label for="category" class="control-label col-lg-2">Category</label>
+            <div class="col-lg-10 form-group"><input 
+            list="lostAndFoundCategories" id="category" name="category"  class="form-control ltdata" maxlength="25"></div>
+            <datalist id="lostAndFoundCategories"></datalist>
              
-            <label for="latestYear" class="control-label col-lg-2">Latest Year</label>
-            <div class="col-lg-10 form-group"><input value="1718" id="latestYear" name="latestYear" maxlength="4" class="form-control ltdata"></div> 
             
-            <label for="staffSearchButtons" class="control-label col-lg-2"></label>
-            <div id="staffSearchButtons" class="form-group col-lg-10">
+            <label for="lostAndFoundSearchButtons" class="control-label col-lg-2"></label>
+            <div id="lostAndFoundSearchButtons" class="form-group col-lg-10">
                 <button type="reset" class="btn btn-default">Cancel</button>
-                <button id="staffSearchButton" type="submit" class="btn btn-primary">Submit</button>
+                <button id="lostAndFoundSearchButton" type="submit" class="btn btn-primary">Submit</button>
             </div>
             </fieldset>
         </form>
         
-        <table id="tableStaffSearch" data-show-toggle="true" data-show-columns="true" data-detail-view="true" data-show-export="true" data-search="true" data-id-field="id"></table>        
+        <table id="tableLostAndFoundSearch" data-show-toggle="true" data-show-columns="true" data-detail-view="true" data-show-export="true" data-search="true" data-id-field="id"></table>        
         
-      </div>      
+      </div>
+<div class="screen" id="createLostAndFoundItem">
+        
+        
+        <form id="lostAndFoundForm" class="form-horizontal">
+          <fieldset id="lostAndFoundFormFieldset">
+              
+             <label  class="control-label col-lg-2"></label> 
+             <h2 class="col-lg-10 form-group">Create Lost and Found Entry</h2> 
+              
+            <label for="status" class="control-label col-lg-2">What kind of item are you entering?</label>
+            <div class="col-lg-10 form-group"><select id="status" name="status"  class="form-control ltdata" >
+              <option></option>
+              <option value="lost">Something I Lost</option>
+              <option value="found">Something I Found</option>
+              </select>
+            </div>
+            
+            
+            
+            <label for="dateLostOrFound" class="control-label col-lg-2">Date you lost or found the item</label>
+            <div class="col-lg-10 form-group"><input  id="dateLostOrFound" type="date" name="dateLostOrFound" class="form-control ltdata"></div>
+            
+            <label for="locationLostOrFound" class="control-label col-lg-2">Location where you lost or found the item</label>
+            <div class="col-lg-10 form-group"><input  id="locationLostOrFound" type="date-local" name="locationLostOrFound" class="form-control ltdata" maxlength="25"></div>
+            
+            
+            <label for="category" class="control-label col-lg-2">Category</label>
+            <div class="col-lg-10 form-group"><input 
+            list="lostAndFoundCategories" id="category" name="category"  class="form-control ltdata" maxlength="25"></div>
+            
+             <label for="title" class="control-label col-lg-2">Title</label>
+            <div class="col-lg-10 form-group"><input 
+             id="title" name="title"  class="form-control ltdata" maxlength="100"></div>
+            
+            <label for="description" class="control-label col-lg-2">Description</label>
+            <div class="col-lg-10 form-group"><textarea  id="description" name="description" maxlength="255" class="form-control ltdata"></textarea></div>
+            
+            
+            <label for="lostAndFoundButtons" class="control-label col-lg-2"></label>
+            <div id="lostAndFoundButtons" class="form-group col-lg-10">
+                <button type="reset" class="btn btn-default">Cancel</button>
+                <button id="createLostAndFoundItemButton" type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            </fieldset>
+        </form>
+        
+      </div>
+      
+      
     
 </div>
 </div>
@@ -805,25 +665,15 @@ function patchData(resource,key,columnData) {
         };
 
 
-        function handleFormResponse(resource,response) {
-            console.log(response);
+        function handleFormResponse(resource,formId,response) {
+            console.log("start handleFormResponse: ", formId, response);
             showModal(response.result,response.message);
             if ($("#genericModal h4").text() == "success") {
-               var formEl,submitButton;
-               switch(resource) {
-                 case 'Communication' :
-                     formEl = $("#commLogForm")[0];
-                     submitButton = $("#commLogForm button[type='Submit']");
-                     break;
-                case 'Demerit' :
-                   formEl = $("#demeritForm")[0];
-                   submitButton = $("#demeritForm button[type='Submit']")
-                   break;
-
-                }
-                formEl.reset();
-                submitButton.prop('disabled',false);
-        }
+               var formEl = $("#" + formId)[0];
+               var submitButton = $(formEl).find("button[type='Submit']");
+               formEl.reset();
+               submitButton.prop('disabled',false);
+            }
         }
         
         /***************************************
@@ -831,7 +681,7 @@ function patchData(resource,key,columnData) {
          * 
          * 
         ***************************************/
-        function postData(resource, columnData, responseHandler) {
+        function postData(resource, formId, columnData, responseHandler) {
         $.post(
                     'https://lanetech.org/api/v2/api.php/' + resource + '/', 
                     
@@ -841,7 +691,7 @@ function patchData(resource,key,columnData) {
                         columns: columnData
                     },
                     function(response) {
-                        handleFormResponse(resource,response);
+                        handleFormResponse(resource,formId,response);
                     });
         };
 
@@ -871,6 +721,10 @@ function patchData(resource,key,columnData) {
     
     $(function() {
         
+        
+        
+        
+        
         var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         
         
@@ -878,6 +732,10 @@ function patchData(resource,key,columnData) {
         
         
         getPublicData('vwDayBellSchedules',loadBellSchedule);
+        
+        //loadLostAndFoundCategories();
+        
+        
         
         $(".studentDetailCommLogEntry").on("click", function() {
             console.log($(this));
@@ -910,6 +768,23 @@ function patchData(resource,key,columnData) {
            return false;
        });
  
+ 
+        $("#lostAndFoundSearchButton").on("click", function() {
+           var formValues = $("#lostAndFoundSearchForm").serializeArray();
+           var params = {};
+           $.each(formValues, function(i,v) {
+              if (v.value != "") {
+                  params[v.name] = v.value;
+              } 
+           });
+           searchLostAndFound(params);
+           return false;
+       });
+ 
+ 
+ 
+ 
+ 
        $("#commLogButton").on("click", function() {
            if ($("#commLogForm #dateTime").val() == "") {   
                showModal('Error in date-time value', 'Please enter both a date and time.')
@@ -932,6 +807,46 @@ function patchData(resource,key,columnData) {
            $("#commLogButton").prop("disabled",false);
            return false;
        }); 
+       
+       
+       $("#createLostAndFoundItemButton").on("click", function() {
+           console.log("start createLostAndFoundItemButton.click handler");
+           
+           // form validation
+           if ($("#lostAndFoundForm #date").val() == "") {   
+               showModal('Error in date value', 'Please enter a date.')
+               return false;
+           }  
+           
+           // disable the button once clicked
+           $(this).prop("disabled",true);
+           
+           // create an object of the form values to pass to AJAX
+           var data ={};
+           $('#lostAndFoundForm .ltdata').filter(':enabled').each(function(){
+                data[$(this).attr("id")] = $(this).val();
+            });
+          
+           console.log(data);
+           
+           postData('LostFoundItem','lostAndFoundForm', data);
+           
+           
+           $('html, body').animate({scrollTop: '0px'}, 300);
+           
+           
+           // might want some screen change beyond form reset
+           
+           // prevent default form submit action
+           return false;
+       }); 
+       
+       createLostAndFoundItemButton
+       
+       
+       
+       
+       
        
        $("#studentSearchButton").on("click", function() {
            var formValues = $("#studentSearchForm").serializeArray();
@@ -981,17 +896,63 @@ function patchData(resource,key,columnData) {
            return false;
        });
 
-       $("#staffSearchButton").on("click", function() {
-           var formValues = $("#staffSearchForm").serializeArray();
-           var params = {};
-           $.each(formValues, function(i,v) {
-              if (v.value != "") {
-                  params[v.name] = v.value;
-              } 
-           });
-           searchStaff(params);
-           return false;
-       });
+      // $("#lostAndFoundSearchButton").on("click", function() {
+      //     var formValues = $("#lostAndFoundSearchForm").serializeArray();
+      //     var params = {};
+      //     $.each(formValues, function(i,v) {
+      //         if (v.value != "") {
+      //             params[v.name] = v.value;
+      //         } 
+      //     });
+      //     searchLostAndFound(params);
+      //     return false;
+      // });
+
+
+
+
+  
+        function searchLostAndFound(params) {
+                $.post(
+                    'https://lanetech.org/api/v2/api.php/LostFoundItem?' + $.param(params), 
+                    
+                    { 
+                        idtoken: id_token,
+                        method: "GET"
+                    
+                    },
+                    function(response) {
+                        checkResponseError(response);
+                        loadTable(response.data,"tableLostAndFoundSearch");
+                    });
+        }  
+
+    function loadTable (data, tableId) {
+        console.log("loadTable", tableId, data);
+        switch(tableId) {
+            case "tableLostAndFoundSearch":
+             $('#' + tableId).bootstrapTable('destroy');
+             displayColumns = [
+                 {field: "id", title: "Item ID", sortable: true},
+                 {field: "dateLostOrFound", title: "Date Lost or Found", sortable: true},
+                
+                 {field: "status", title: "Status", sortable: true},
+                 {field: "category", title: "Category", sortable: true},
+                 {field: "title", title: "Title", sortable: true}
+                ];
+             break;
+        }
+
+
+          $('#' + tableId).bootstrapTable({
+              detailFormatter: detailFormatter,
+              columns: displayColumns,   
+              data: data
+          });
+        
+        
+    }
+
 
         $("#absenceSearchButton").on("click", function() {
            var formValues = $("#absenceSearchForm").serializeArray();
@@ -1391,124 +1352,7 @@ function patchData(resource,key,columnData) {
         
     }
     
-    
-    function loadCoursesAndStudents (data, tableId) {
-        var courseIds = [];
-        var courses = {};
-        var div;
-        var displayColumns;
-        $.each(data, function(i,v) {
-            // create array of courses (needed for later)
-            if (!courseIds.indexOf(v["courseId"])) {
-                courseIds.push(v["courseId"]);
-                courses[v["courseId"]] = {
-                    courseName: v["courseName"],
-                    courseId: v["courseId"],
-                    courseCode: v["courseCode"],
-                    sectionNumber: v["sectionNumber"],
-                    sectionId: v["sectionId"],
-                    students: []
-                };
 
-            }
-            // push students to array for the course
-        });
-        
-        switch(tableId) {
-            case "tableCommunicationLogSearch":
-             $('#' + tableId).bootstrapTable('destroy');
-             displayColumns = [
-                 {field: "id", title: "Entry ID", sortable: true},
-                 {field: "dateTime", title: "Date/Time", sortable: true},
-                 {field: "studentId", title: "Student Id", sortable: true},
-                 {field: "studentLastName", title: "Student Last Name", sortable: true},
-                 {field: "studentFirstName", title: "Student First Name", sortable: true},
-                 {field: "category", title: "Category", sortable: true},
-                 {field: "subject", title: "Subject", sortable: true},
-                 {field: "staffLastName", title: "Staff", sortable: true}
-                 
-                ];
-             break;
-
-            case "tableStudentSearch":
-             $('#' + tableId).bootstrapTable('destroy');
-             displayColumns = [
-                 {field: "id", title: "Student ID", sortable: true},
-                 {field: "lastName", title: "Last Name", sortable: true},
-                 {field: "firstName", title: "First Name", sortable: true},
-                 {field: "username", title: "Username", sortable: true},
-                 {field: "gradeLevel", title: "Grade", sortable: true},
-                 {
-                            field: 'actions',
-                            title: 'Actions',
-                            align: 'center',
-                            events: actionEvents,
-                            formatter: actionFormatter
-                        }
-                 
-                ];
-             break;
-            case "tableStudents" :
-                displayColumns = [
-             {field: "studentId", title: "Student ID", sortable: true},
-             {field: "studentLastName", title: "Last Name", "filterControl": "input", sortable: true},
-             {field: "studentFirstName", title: "First Name", sortable: true},
-             {field: "studentUsername", title: "Username", sortable: true},
-             {field: "gradeLevel", title: "Grade", sortable: true},
-             {field: "courseName", title: "Course", "filterControl": "select", sortable: true},
-             {field: "courseCode", title: "Code", sortable: true},
-             {field: "period", title: "Period", "filterControl": "select", sortable: true},
-             {field: "sectionNumber", title: "Section", sortable: true},
-             {field: "email", title: "Email", sortable: true},
-             {field: "parent1Name", title: "Parent 1 Name", visible: false, sortable: true},
-             {field: "parent1Relation", title: "Parent 1 Relation", visible: false, sortable: true},
-             {field: "parent1Email", title: "Parent 1 Email", visible: false, sortable: true},
-             {field: "parent1Phone", title: "Parent 1 Phone", visible: false, sortable: true},
-             {field: "parent1Cell", title: "Parent 1 Cell", visible: false, sortable: true},
-             {
-                        field: 'actions',
-                        title: 'Actions',
-                        align: 'center',
-                        events: actionEvents,
-                        formatter: actionFormatter
-                    }
-             
-             ]  ;
-             break;
-            case "tableStaffSearch" :
-                
-             $('#' + tableId).bootstrapTable('destroy');
-            displayColumns = [
-             {field: "lastName", title: "Last Name", sortable: true},
-             {field: "firstName", title: "First Name", sortable: true},
-             {field: "latestYear", title: "Latest Year", sortable: true},
-             //{field: "username", title: "Username", sortable: true},
-             {field: "department", title: "Primary Deparment", sortable: true},
-             {field: "phoneCell", title: "Cell Phone", sortable: true},
-             {field: "phoneHome", title: "Home Phone", sortable: true},
-             {field: "email", title: "Email", sortable: true}
-            //  {
-            //             field: 'actions',
-            //             title: 'Actions',
-            //             align: 'center',
-            //             events: actionEvents,
-            //             formatter: actionFormatter
-            //         }
-             
-             ]  ;
-             break;
- 
-        }
-
-        $('#' + tableId).bootstrapTable({
-            detailFormatter: detailFormatter,
-            columns: displayColumns,   
-            data: data
-
-        });
-        
-        
-    }
     
     function actionFormatter(value, row, index) {
         return [
@@ -1524,98 +1368,9 @@ function patchData(resource,key,columnData) {
         ].join('');
     }
     
+  
 
- 
-    function searchStudents(params) {
-                
-                
-                $.post(
-                    'https://lanetech.org/api/v2/api.php/Student?' + $.param(params), 
-                    
-                    { 
-                        idtoken: id_token,
-                        method: "GET"
-                    
-                    },
-                    function(response) {
-                        checkResponseError(response);
-                        loadCoursesAndStudents(response.data,"tableStudentSearch");
-                    });
-            } 
- 
-        function searchStaff(params) {
-                $.post(
-                    'https://lanetech.org/api/v2/api.php/Staff?' + $.param(params), 
-                    
-                    { 
-                        idtoken: id_token,
-                        method: "GET"
-                    
-                    },
-                    function(response) {
-                        checkResponseError(response);
-                        loadCoursesAndStudents(response.data,"tableStaffSearch");
-                    });
-        }  
- 
-        function searchCommunicationLog(params) {
-                $.post(
-                    'https://lanetech.org/api/v2/api.php/vwCommunicationLogEntries?' + $.param(params), 
-                    
-                    { 
-                        idtoken: id_token,
-                        method: "GET"
-                    
-                    },
-                    function(response) {
-                        checkResponseError(response);
-                        loadCommunicationLogSearchResults(response);
-                    });
-        }   
 
-        function searchDemerits(params) {
-                $.post(
-                    'https://lanetech.org/api/v2/api.php/vwDemeritEntries?' + $.param(params), 
-                    
-                    { 
-                        idtoken: id_token,
-                        method: "GET"
-                    
-                    },
-                    function(response) {
-                        checkResponseError(response);
-                        loadDemeritSearchResults(response);
-                    });
-        }   
-        function searchDemeritTotals(params) {
-                $.post(
-                    'https://lanetech.org/api/v2/api.php/vwDemeritTotals?' + $.param(params), 
-                    
-                    { 
-                        idtoken: id_token,
-                        method: "GET"
-                    
-                    },
-                    function(response) {
-                        checkResponseError(response);
-                        loadDemeritTotalsSearchResults(response);
-                    });
-        }   
-        
-        function searchAbsence(params) {
-                $.post(
-                    'https://lanetech.org/api/v2/api.php/vwAbsence?' + $.param(params), 
-                    
-                    { 
-                        idtoken: id_token,
-                        method: "GET"
-                    
-                    },
-                    function(response) {
-                        checkResponseError(response);
-                        loadAbsenceSearchResults(response);
-                    });
-        }   
 
             function getCoursesAndStudents(staffId) {
             $.post(
@@ -1681,44 +1436,8 @@ function patchData(resource,key,columnData) {
     
     
     
-    function loadMyDepartments (response) {
-        $("#myDeparments table").remove();
-        
-        displayTable( 
-            [ {header:'Department Name', column: 'departmentName'}],
-            response.data,
-            'myDepartments'
-        );
-        
-        hideLoader('myDepartments');
-    }
 
-    function loadMyCourseSections (response) {
-        $("#myCourseSections table").remove();
-        var sortedData = response.data.sort(function(a, b){
-            	return a.period - b.period;
-        });
-        
-        $.each(sortedData, function(i,v) {
-            sortedData[i]["edit-Section-id"] = v.sectionId;
-        })
-        
-        displayTable( 
-            [ 
-                {column: 'period', header: 'Period'},
-                {column: 'room', header: 'Room'},
-                {column: 'courseCode', header: 'Course Code'},
-                {column: 'courseName', header: 'Course Name'},
-                {column: 'number', header: 'Section Number'},
-                {column: 'edit-Section-id', header: 'Edit'}
-                
-            ],
-            sortedData,
-            'myCourseSections'
-        );
-        
-        hideLoader('myCourseSections');
-    }
+
 
     function hideLoader(elementId) {
         $("#" + elementId + " .loader").hide();
@@ -1742,43 +1461,7 @@ function patchData(resource,key,columnData) {
 
     
     
-    function loadMyTasks (response) {
-        var screen = $("#myTasks");
-        var div = screen.find("div.container .screen-content");
-        div.html("");
-        $.each(response.data, function(i,v) {
-            div.append(v.description);
-            var select = $("<select>");
-            select.attr("data-id", v["staffTask_id"]);
-            select.attr("name", "status");
-            var option;
-            $.each(v["statusOptions"].split(","), function(idx,val) {
-               option = $("<option>");
-               if (val == v["status"]) {
-                   option.prop("selected", true);
-               }
-               option.attr("value", val);
-               option.text(val);
-               
-               select.append(option);
-            });
-            
-            div.append(select);
-            div.append("<p>Current status of <strong>" + v["status"] + "</strong> was set on " + v["statusDateTime"] + "</p>");
-        });
-        
-        $("#myTasks select").on("change",function() {
-              var key = $(this).attr("data-id");
-              var columnName = $(this).attr("name");
-              var value = $(this).find(":selected").val();
-              updateResourceData(
-                  'StaffTask', 
-                  key,
-                  { "status" : value},
-                  genericResponseHandler
-                );
-        });
-    }
+
 
     var genericResponseHandler = function(response) {
         console.log("genericResponseHandler",response);
@@ -1971,70 +1654,23 @@ function patchData(resource,key,columnData) {
                 window[responseHandler]);      
     }
     
-    function loadEditForm (strResource, strKey) {
-        // handle to form
-        var editForm = $("#edit" + strResource + "Form");
-        
-        // get data
-        getData("vwEdit" + strResource, strKey, function (response) { 
-            if (response.data.length > 1) {
-                showModal("Error", "An error occurred while retrieving data for this item.");
-                return false;
-            }
-            var record = response.data[0];
-            // load into form
-            $.each(record, function(k,v) {
-                editForm.find("#" + k).val(v);
-            });
-            // show screen
-            showScreen("#edit" + strResource);
-        });
-    }
     
     
     
     
-    function loadProfileValues (username) {
-        var url = 'https://lanetech.org/api/v2/api.php/Staff/?username=' + username;
-        $.post(
-                url, 
-                { 
-                    idtoken: id_token,
-                    method: 'GET'
-                },
-                function(response) {
-                    var profileData = response.data[0];
-                    $.each(profileData, function(k,v) {
-                        //console.log(k,$("input[id='" + k + "']"));
-                        if (v != "") {
-                            $("#profileForm input[id='" + k + "']").val(v);
-                        }
-                    })
-                    user["id"] = profileData["id"];
-                    getMyData('vwStaffTasks',loadMyTasks);
-                    getCoursesAndStudents(profileData["id"]);
-                });      
-    }
-        
-    function showCommLogEntryForm(studentId) {
-      $("#commLogForm #student_id").val(studentId);
-      $("#commLogForm #dateTime").val(new Date());
-      showScreen('#commLog');
-    } 
 
-    function showDemeritEntryForm(studentId) {
-      $("#demeritForm #student_id").val(studentId);
-      showScreen('#demerit');
-    } 
+
+
+
 
      
-    function loadDataLists (data) {
+    function loadDataLists (options, listId) {
         var option;
-        $.each(data, function(i,v) {
+        $.each(options, function(i,v) {
            option = $("<option>");
-           option.attr("value",v.studentId);
-           option.text(v.studentLastName + ", " + v.studentFirstName + ": " + v.studentId);
-           $("#commLogStudents").append(option);
+           option.attr("value",v.value);
+           option.text(v.display);
+           $("#" + listId).append(option);
         });
     } 
     
@@ -2068,23 +1704,50 @@ function patchData(resource,key,columnData) {
                     );
     }
     
+
+    function loadStudentAbsenceEntries(response) {
+        var data = response.data;
+        
+        var absenceCount = 0, tardyCount = 0;
+        
+        $.each(data, function(i,v) {
+            if (v["status"].indexOf("AUX") > -1 || v["status"].indexOf("AEX") > -1 ) {
+                absenceCount += 1;
+            } 
+            else if (v["status"].indexOf("T") > -1) {
+                tardyCount += 1;
+            }
+        });
+        
+        $("#badgeAbsenceCount").text("Absences: " + absenceCount);
+        $("#badgeTardyCount").text("Tardies: " + tardyCount);
+
+        
+        $("#studentAbsenceEntries table").remove();
+        
+        displayTable( 
+            [ 
+                {column: 'date', header: 'Date'},
+                {column: 'period', header: 'Period'},
+                {column: 'status', header: 'Status'}
+            ],
+            data,
+            'studentAbsenceEntries'
+        );
+        
+        hideLoader('studentAbsenceEntries');
+    }       
+
+
     
     function getStudentDetail (studentId) {
+        console.log("in get student detail with id = " + studentId);
         getData('Student', studentId, loadStudentBasic);
         getData('student_database', studentId, loadStudentContacts);
         getDataWithParams('vwStudentDivision', {"student_id": studentId}, loadStudentDivision);
         getDataWithParams('vwStudentCourseSections', {"student_id": studentId}, loadStudentCourseSections);
-        getDataWithParams('vwCommunicationLogEntries', {"student_id": studentId}, loadStudentCommunicationLogEntries);
-        getDataWithParams('vwArchiveCommunicationLogEntries', {"student_id": studentId}, loadStudentArchiveCommunicationLogEntries);
         getDataWithParams('vwDemeritEntries', {"student_id": studentId}, loadStudentDemeritEntries);
-        getDataWithParams('Absence', {"student_id": studentId}, loadStudentAbsenceEntries);     
-        $("#studentImage .panel-body").html("");
-        
-        var simg = $("<img>");
-        simg.addClass("img-responsive");
-        simg.attr("src", getStudentImageUrl(studentId));
-        simg.attr("alt", "image of " + studentId);
-        $("#studentImage .panel-body").append(simg);
+        getDataWithParams('Absence', {"student_id": studentId}, loadStudentAbsenceEntries); 
     }
     
     
@@ -2318,51 +1981,7 @@ function patchData(resource,key,columnData) {
         hideLoader('studentCourseSections');
     }
      
-    function loadStudentCommunicationLogEntries(response) {
-        var data = response.data;
-        
-        $("#badgeCommunicationLogEntriesCount").text("Number of entries: " + data.length);
-        
-        $("#studentCommunicationLogEntries table").remove();
-        var sortedData = response.data.sort(function(a, b){
-            	return a.dateTime - b.dateTime;
-        });
-        displayTable( 
-            [ 
-                {column: 'dateTime', header: 'Date/Time'},
-                {column: 'staffLastName', header: 'Staff'},
-                {column: 'subject', header: 'Subject'},
-                {column: 'summary', header: 'Summary'}
-            ],
-            sortedData,
-            'studentCommunicationLogEntries'
-        );
-        
-        hideLoader('studentCommunicationLogEntries');
-    }        
 
-    function loadStudentArchiveCommunicationLogEntries(response) {
-        var data = response.data;
-        
-        $("#badgeArchiveCommunicationLogEntriesCount").text("Number of entries: " + data.length);
-        
-        $("#studentArchiveCommunicationLogEntries table").remove();
-        var sortedData = response.data.sort(function(a, b){
-            	return a.dateTime - b.dateTime;
-        });
-        displayTable( 
-            [ 
-                {column: 'dateTime', header: 'Date/Time'},
-                {column: 'staffLastName', header: 'Staff'},
-                {column: 'subject', header: 'Subject'},
-                {column: 'summary', header: 'Summary'}
-            ],
-            sortedData,
-            'studentArchiveCommunicationLogEntries'
-        );
-        
-        hideLoader('studentArchiveCommunicationLogEntries');
-    }  
 
 
 
@@ -2397,38 +2016,6 @@ function patchData(resource,key,columnData) {
         hideLoader('studentDemeritEntries');
     }      
 
-    function loadStudentAbsenceEntries(response) {
-        var data = response.data;
-        
-        var absenceCount = 0, tardyCount = 0;
-        
-        $.each(data, function(i,v) {
-            if (v["status"].indexOf("AUX") > -1 || v["status"].indexOf("AEX") > -1 ) {
-                absenceCount += 1;
-            } 
-            else if (v["status"].indexOf("T") > -1) {
-                tardyCount += 1;
-            }
-        });
-        
-        $("#badgeAbsenceCount").text("Absences: " + absenceCount);
-        $("#badgeTardyCount").text("Tardies: " + tardyCount);
-
-        
-        $("#studentAbsenceEntries table").remove();
-        
-        displayTable( 
-            [ 
-                {column: 'date', header: 'Date'},
-                {column: 'period', header: 'Period'},
-                {column: 'status', header: 'Status'}
-            ],
-            data,
-            'studentAbsenceEntries'
-        );
-        
-        hideLoader('studentAbsenceEntries');
-    }       
    
     function callApi(url, dataMethod){
             //   using POST for every request due to Google Auth;
@@ -2526,6 +2113,32 @@ function patchData(resource,key,columnData) {
             return html.join('');
         }
     
+    
+          function loadLostAndFoundCategories () {
+                $.post(
+                    'https://lanetech.org/api/v2/api.php/vwLostAndFoundCategories', 
+                    
+                    { 
+                        idtoken: id_token,
+                        method: "GET"
+                    
+                    },
+                    function(response) {
+                        checkResponseError(response);
+                        var options = [];
+                        $.each(response.data, function(i,v) {
+                          options.push({"display": v.category, "value": v.category});
+                        });
+                        
+                        
+                        
+                        loadDataLists(options, "lostAndFoundCategories")
+                    });        
+        
+        
+      }
+    
+    
         var columns = {
 
 "id":{ "Label":"ID",	"Display":true,	"Editable":false,	"MaxLength":6},
@@ -2581,3 +2194,5 @@ var bellScheduleColumns = {
 
 
 </script>
+</body>
+</html>

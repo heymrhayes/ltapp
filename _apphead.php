@@ -12,20 +12,36 @@
     <!-- Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script>
+      var inactivityTimer, logOutTimer;
       
+     
+      
+      
+      function promptToStayLoggedIn() {
+          logOutTimer = setTimeout(signOut,(1000*60*5)); 
+          showModal("Are you still using the app?", "Because there's been no activity, we'll log you out shortly.  If you want to stay logged in, click the <strong>Close</strong> button>");
+      }
+      
+      
+      
+      
+      
+      var GoogleAuth; // Google Auth object.
     
       var id_token;
       var permissions = [];
       var user = {};
       
       function onSignIn(googleUser) {
+            inactivityTimer = setTimeout(promptToStayLoggedIn,(1000*60*30)); 
+
             console.log(googleUser);
             console.log( "signedin");
             // Useful data for your client-side scripts:
             var profile = googleUser.getBasicProfile();
             var name = profile.getName();
             console.log("Name: " + name);
-            $("#userFullName").prepend(name);
+            $("#userFullName .name").text(name);
             $("#user").show();
 
             user["email"] = profile.getEmail();
@@ -46,6 +62,7 @@
               client_id: '466686405732-8e9j1kgs5bo1uu41pc4gkltlhonbka70.apps.googleusercontent.com'
 
             }).then(function(auth2) {
+                //GoogleAuth = auth2.getAuthInstance();
                 auth2.isSignedIn.listen(signinChanged);
                 console.log( "signed in: " + auth2.isSignedIn.get() );  
                 if(!auth2.isSignedIn.get()) {
@@ -68,17 +85,34 @@
         
         
         function signOut() {
+          GoogleAuth = null;
           var auth2 = gapi.auth2.getAuthInstance();
           auth2.signOut().then(function () {
             console.log('User signed out.');
             
             $("#user").hide();
+            hideModal();
             showScreen('#home');
             id_token = "";
             $("input").val("");
           });
           $("#signInMessage").show();
         }
+        
+        
+        
+        function checkAccessToken (strToken) {
+          $.get(
+              "https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=" + strToken,
+              function (response) {
+                return
+                
+              });
+          
+          
+        }
+        
+
     </script>
     
     <script>
@@ -235,17 +269,17 @@
       <ul class="nav navbar-nav">
         <li><a href="#home">Today<span class="sr-only">(current)</span></a></li>
         
-        <li><a href="#myStudents">My Students</a></li>
-        <li><a href="#myTasks">My Tasks</a></li>
+        <li class="navTeacher"><a href="#myStudents">My Students</a></li>
+        <li class="navStaff"><a href="#myTasks">My Tasks</a></li>
         <li><a href="#resources">Resources</a></li>
-        <li class="dropdown">
+        <li class="dropdown navStaff">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">Create<span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
             <li><a href="#commLog">Communications Log</a></li>
             <li><a href="#demerit">Demerit</a></li>
           </ul>
         </li>
-        <li class="dropdown">
+        <li class="dropdown navStaff">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">Search<span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
             <li><a href="#studentSearch">Student Search</a></li>
@@ -257,15 +291,14 @@
           </ul>
         </li>
         
-        <li class="dropdown">
+        <li class="dropdown navStaff">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">My Entries<span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
             <li><a href="#myCommunicationLogEntries">Communications Log</a></li>
             <li><a href="#myDemeritEntries">Demerits</a></li>
           </ul>
         </li>
-        
-        <li class="dropdown attendance">
+        <li class="dropdown attendance navStaff">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">Attendance<span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
             <li><a href="#demeritTotalsSearch">Student Demerit Totals</a></li>
@@ -285,7 +318,7 @@
       
       <ul id="user" class="nav navbar-nav navbar-right" style="display:none;">
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true" id="userFullName"><span class="caret"></span></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true" id="userFullName"><span class="name"></span><span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
             <li><a href="#profile">Profile</a></li>
             <li><a href="#myDepartments">Departments</a></li>
