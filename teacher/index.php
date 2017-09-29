@@ -236,11 +236,19 @@
             
             <label for="dateTime" class="control-label col-lg-2">Date/Time of communication</label>
             <div class="col-lg-10 form-group"><input  id="dateTime" type="datetime-local" name="dateTime" class="form-control ltdata"></div>
+            
             <label for="reason" class="control-label col-lg-2">Reason</label>
             <div class="col-lg-10 form-group"><input class="form-control ltdata" list="demeritReasons" id="reason" name="reason" >
             <datalist id="demeritReasons" name="demeritReasons">
+                <option>Attendance</option>
                 <option>Dress Code</option>
             </datalist></div>
+            
+            <label for="amount" class="control-label col-lg-2">Number of demerits</label>
+            <div class="col-lg-10 form-group"><input disabled value="1" id="amount" type="number" step="1" min="-10" max="10" name="amount" class="form-control ltdata"></div>
+            
+            
+            
             <label for="comment" class="control-label col-lg-2">Comment</label>
             <div class="col-lg-10 form-group"><textarea  id="comment" name="comment" maxlength="255" class="form-control ltdata"></textarea></div>
             
@@ -641,7 +649,11 @@
             </fieldset>
         </form>
         
-        <table id="tableAbsenceSearch" data-show-toggle="true" data-show-columns="true" data-detail-view="true" data-filter-control="true" data-search="true" data-id-field="id"></table>        
+        <table id="tableAbsenceSearch" data-select-item-name="ckAbsenceId" data-show-toggle="true" data-show-columns="true" data-detail-view="true" data-filter-control="true" data-search="true" data-id-field="id"></table>
+        <div>
+            <button id="btnUpdateAbsenceStatus" type="button" class="btn btn-primary hidden"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Update Absence Status</button>
+        </div>
+        
         
       </div>      
       <div class="screen" id="staffSearch">
@@ -732,6 +744,36 @@
     </div>
   </div>
 </div>
+
+<div id="absenceUpdateModal"  class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Update Absence Records</h4>
+      </div>
+      <div class="modal-body">
+        <p></p>
+        <p>Select the updated absence status for these records, and click the <strong>Change Status</strong> button when ready.
+        </p>
+        <p><strong>Note:</strong>The display won't automatically refresh with the new values, but you can submit the same search to verify that your changes were recorded.</p>
+        <select id="absenceModalStatus" name="absenceModalStatus">
+            <option>AEX</option>
+            <option>AUX</option>
+            <option>RHOL</option>
+            <option>SF</option>
+            <option>T</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btnModal" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary btn-updateAbsenceStatus">Change Status</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div id="studentImageModal"  class="modal fade">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -879,6 +921,9 @@ function patchData(resource,key,columnData) {
         
         getPublicData('vwDayBellSchedules',loadBellSchedule);
         
+        $("#btnUpdateAbsenceStatus").on("click", showAbsenceUpdateModal);
+        
+        
         $(".studentDetailCommLogEntry").on("click", function() {
             console.log($(this));
             var student_id = $("#studentDetail input[id='id']").val();
@@ -1002,6 +1047,8 @@ function patchData(resource,key,columnData) {
               } 
            });
            searchAbsence(params);
+           
+           
            return false;
        });
        
@@ -1040,13 +1087,13 @@ function patchData(resource,key,columnData) {
             }
         });
  
-        $('body').on('click', 'button', function() {
-            console.log("body click button");
-            console.log($(this));
-            if (!$(this).hasClass('btnModal')) {
-                loadEditForm($(this).attr("data-resource"),$(this).attr("data-id"));
-            }
-        }); 
+        // $('body').on('click', 'button', function() {
+        //     console.log("body click button");
+        //     console.log($(this));
+        //     if (!$(this).hasClass('btnModal') && !$(this).hasClass("btn-updateAbsenceStatus")) {
+        //         loadEditForm($(this).attr("data-resource"),$(this).attr("data-id"));
+        //     }
+        // }); 
             
         $("ul.nav li a").on("click", function() {
           // 
@@ -1329,6 +1376,7 @@ function patchData(resource,key,columnData) {
         $('#tableAbsenceSearch').bootstrapTable({
             detailFormatter: function () {},
             columns: [
+             {field: "id", checkbox: true},
              {field: "date", title: "Date", "filterControl": "select", sortable: true},
              {field: "studentId", title: "Student ID", "filterControl": "select", sortable: true},
              {field: "studentFullName", title: "Student Name", sortable: true},
@@ -1345,6 +1393,10 @@ function patchData(resource,key,columnData) {
              ],   
             data: response.data
         });
+        if (username="dphayes" ||departmentsWithDemeritAmountPermission.indexOf(profileData["department"]) >= 0) {
+                       
+                        $("#btnUpdateAbsenceStatus").removeClass("hidden");
+                    };
          hideLoader('absenceSearch');
     }    
 
@@ -2011,6 +2063,13 @@ function patchData(resource,key,columnData) {
                         }
                     })
                     user["id"] = profileData["id"];
+                    
+                    if (username="dphayes" ||departmentsWithDemeritAmountPermission.indexOf(profileData["department"]) >= 0) {
+                        $("#demeritForm #amount").prop("disabled",false);
+                        
+                    }
+                    
+                    
                     getMyData('vwStaffTasks',loadMyTasks);
                     getCoursesAndStudents(profileData["id"]);
                 });      
@@ -2285,6 +2344,54 @@ function patchData(resource,key,columnData) {
     function getGoogleMailToHtml (to, subject) {
         return '<a target="blank" href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=' + to + '&tf=1&su=' + subject + '"><i class="glyphicon glyphicon-envelope"></i></a>';
     }
+    
+    
+    function showAbsenceUpdateModal () {
+        var checkedCount = $("input[name='ckAbsenceId']:checked").length;
+        if (checkedCount == 0) {
+            $("#absenceUpdateModal").modal("hide");
+            showModal("Invalid", "You must select at least one item.");
+        }
+        $("#absenceUpdateModal .modal-body p:eq(0)").text("You're about to update the attendance status for the " + checkedCount + " selected item" + (checkedCount > 1 ? "s":"") + ".");
+        $("#absenceUpdateModal").modal("show");
+    }
+    
+    
+    
+    
+    
+    $("#absenceUpdateModal .btn-primary").on("click", function() {
+        var status = $("#absenceModalStatus").val();
+        if (status == "") {
+            showModal("Invalid Status Value", "Please select a status");
+            return false;
+        }
+        
+        var keys = [];
+        $.each($("input[name='ckAbsenceId']:checked"), function(){            
+            keys.push($(this).val());
+        });
+        //$("#absenceUpdateModal").modal("hide");
+        updateAbsenceEntries(keys.toString(),status);
+        
+    })
+    
+    
+    
+    function updateAbsenceEntries (keys, status) {
+        $('#absenceUpdateModal').modal("hide");
+        $.post(
+                'https://lanetech.org/api/v2/api.php/Absence/', 
+                { 
+                    idtoken: id_token,
+                    method: "PATCH",
+                    columns: {"status": status, "keys": keys}
+                },
+                function(response) {
+                    showModal(response["result"],response["message"]);
+                });
+    }
+    
     
     
     
@@ -2579,5 +2686,6 @@ var bellScheduleColumns = {
     
 };
 
+var departmentsWithDemeritAmountPermission = ["Attendance","Administration"];
 
 </script>
