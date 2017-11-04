@@ -47,8 +47,8 @@
             user["email"] = profile.getEmail();
             user["username"] = profile.getEmail().split("@")[0];
             
-            if (user["username"] == 'dphayes') {
-              user["username"] = 'meshannon';
+            if (user["username"] == 'zdphayes') {
+              user["username"] = 'jlsnyder1';
             }
     
             id_token = googleUser.getAuthResponse().id_token;            
@@ -231,7 +231,21 @@
        console.log(strSelector);
           $("#notification").hide();
           $(".screen").hide();
-          $(strSelector).show();
+          
+          
+          if (strSelector != "#home" &&
+                (typeof id_token == "undefined" || id_token == "")) {
+                  $("#login").show();
+          }
+          else
+          {
+            if (strSelector == "#commLog") {
+              $("#commLogForm #dateTime").val(new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().substring(0,19));
+            }
+            $(strSelector).show();
+          }
+          
+         
     }
 
 
@@ -243,7 +257,7 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/extensions/filter-control/bootstrap-table-filter-control.js"></script>
     
-    // table export extension
+    <!--// table export extension-->
     <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/extensions/export/bootstrap-table-export.js"></script>
     <script src="//rawgit.com/hhurz/tableExport.jquery.plugin/master/tableExport.js"></script>
 
@@ -302,6 +316,10 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">Attendance<span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
             <li><a href="#demeritTotalsSearch">Student Demerit Totals</a></li>
+            <li><a href="#attendanceFiles">Process Attendance Files</a></li>
+            <li><a href="#event">Create Event</a></li>
+            <li><a href="#eventSearch">Search Events</a></li>
+          
           </ul>
         </li>
         

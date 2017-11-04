@@ -4,9 +4,25 @@
     
     ?>
 <style>
+    .ltStaffEditIconLink {display: none; color:#2780e3 !important;}
     .screen {display:none; padding-top: 60px;}
     .media {border: solid 1px #dddddd; margin:10px; padding:10px;}
     .panel-contact {margin:10px;}
+    
+    .modal-body{
+        height: 250px;
+        overflow-y: auto;
+    }
+    
+    @media (min-height: 500px) {
+        .modal-body { height: 400px; }
+    }
+    
+    @media (min-height: 800px) {
+        .modal-body { height: 600px; }
+    }
+    
+    
 </style>
 <div class="container">  
     <div style="display:none;" id="notification" class="alert alert-dismissible alert-success">
@@ -86,6 +102,11 @@
                 
               </div>
             </div>
+    
+      </div>
+      <div class="screen" id="login">
+            <h2 id="signInMessage">Sign in with your @cps account.</h2>
+            <div class="g-signin2" data-onsuccess="onSignIn" data-prompt="select_account"></div>
     
       </div>
       <div class="screen" id="myStudents">
@@ -170,6 +191,7 @@
         </form>
         
       </div>
+      
       <div class="screen" id="commLog">
     
         <form id="commLogForm" class="form-horizontal">
@@ -183,7 +205,22 @@
             
             
             <label for="dateTime" class="control-label col-lg-2">Communication Date/Time</label>
-            <div class="col-lg-10 form-group"><input  id="dateTime" type="datetime-local" name="dateTime" class="form-control ltdata"></div>
+            <div class="col-lg-10 form-group"><input  id="dateTime" type="datetime-local" name="dateTime" class="form-control ltdata">
+            <a data-count="-1" class="btn btn-primary btn-xs changeDay" href="#" role="button"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></a>
+            <a data-count="0" class="btn btn-primary btn-xs setNow" href="#" role="button"><span class="glyphicon glyphicon-calendar" aria-hidden="true"></span></a>
+            <a data-count="1" class="btn btn-primary btn-xs changeDay" href="#" role="button"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
+            
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            
+            <a data-count="-5" class="btn btn-primary btn-xs changeTime" href="#" role="button"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> 5</a>
+            <a data-count="0" class="btn btn-primary btn-xs setNow" href="#" role="button"><span class="glyphicon glyphicon-time" aria-hidden="true"></span></a>
+            <a data-count="5" class="btn btn-primary btn-xs changeTime" href="#" role="button"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 5</a>
+
+
+
+            
+            
+            </div>
             <label for="method" class="control-label col-lg-2">Communication Method</label>
             <div class="col-lg-10 form-group"><input class="form-control ltdata" list="commMethods" id="method" name="method" >
             <datalist id="commMethods" name="commMethods">
@@ -204,7 +241,7 @@
             </datalist></div>
             <label for="subject" class="control-label col-lg-2">Subject</label>
             <div class="col-lg-10 form-group">
-                <input id="subject" name="subject" maxlength="50" class="form-control ltdata">
+                <input id="subject" name="subject" maxlength="50" class="form-control ltdata" placeholder="Enter a brief subject line (50 characters max)" >
             </div>
             <label for="summary" class="control-label col-lg-2">Summary</label>
             <div class="col-lg-10 form-group"><textarea  id="summary" name="summary" maxlength="1000" class="form-control ltdata" placeholder="Enter a summary of the communication (1000 characters max)"></textarea></div>
@@ -263,6 +300,81 @@
         </form>
         
       </div>
+      <div class="screen" id="event">
+        
+        
+        <form id="eventForm" class="form-horizontal">
+          <fieldset id="eventFieldset">
+              
+             <label  class="control-label col-lg-2"></label> 
+             <h2 class="col-lg-10 form-group">Create Event</h2> 
+              
+
+            <label for="dateTime" class="control-label col-lg-2">Start Date/Time</label>
+            <div class="col-lg-10 form-group"><input  id="startDateTime" type="datetime-local" name="startDateTime" class="form-control ltdata"></div>
+            
+            <label for="durationMinutes" class="control-label col-lg-2">Duration (in minutes)</label>
+            <div class="col-lg-10 form-group"><input class="form-control ltdata"  type="number" step="10" min="10" max="480" id="durationMinutes" name="durationMinutes" placeholder="Enter duration in minutes"></div>
+            
+            
+            <label for="type" class="control-label col-lg-2">Event Type</label>
+            <div class="col-lg-10 form-group"><input class="form-control ltdata" list="eventTypes" id="type" name="type" >
+            
+            <datalist id="eventTypes" name="eventTypes">
+                <option>Detention</option>
+            </datalist>
+            </div>
+            
+            <label for="title" class="control-label col-lg-2">Event Title</label>
+            <div class="col-lg-10 form-group"><input id="title"  type="text" name="title" class="form-control ltdata"></div>
+            
+            
+            
+            <label for="comment" class="control-label col-lg-2">Description</label>
+            <div class="col-lg-10 form-group"><textarea  id="description" name="description" maxlength="255" class="form-control ltdata"></textarea></div>
+            
+            <label for="location" class="control-label col-lg-2">Location</label>
+            <div class="col-lg-10 form-group"><input id="location"  type="text" name="location" class="form-control ltdata"></div>
+            
+            <label for="eventButtons" class="control-label col-lg-2"></label>
+            <div id="eventButtons" class="form-group col-lg-10">
+                <button type="reset" class="btn btn-default">Cancel</button>
+                <button id="eventButton" type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            </fieldset>
+        </form>
+        
+      </div>
+      <div class="screen" id="searchEventStudents">
+        
+        <form id="eventStudentsSearchForm" class="form-horizontal">
+          <fieldset id="eventStudentsSearchFieldset">
+              
+             <label  class="control-label col-lg-2"></label> 
+             <h2 class="col-lg-10 form-group">Student Events Search</h2> 
+              <p><a id="btnGetEvents" class="btn btn-primary btn-sm" href="#" role="button">Get Events</a></p>
+            <label for="eventStudentsEventSelect" class="control-label col-lg-2"></label>
+            <div  class="form-group col-lg-10">
+                <select id="eventStudentsEventSelect">
+                  <option value="0"></option>
+                </select>
+            </div>
+
+
+            <label for="eventStudentsSearchButtons" class="control-label col-lg-2"></label>
+            <div id="eventStudentsSearchButtons" class="form-group col-lg-10">
+                <button type="reset" class="btn btn-default">Cancel</button>
+                <button id="eventStudentsSearchButton" type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            </fieldset>
+        </form>
+        
+
+      </div>          
+      </div>
+      
+      
+      
       <div class="screen" id="editSection">
         
         
@@ -326,6 +438,18 @@
               <table id="tableDemeritEntries" data-show-toggle="true" data-show-columns="true" data-search="true" data-detail-view="true" data-id-field="id"></table>
         
         </div>
+      </div>
+      <div class="screen" id="editStudentContacts">
+        <form id="" class="form-horizontal">
+          <fieldset id="">
+            
+            <div id="editStudentContactsButtons" class="form-group col-lg-10">
+                <button type="reset" class="btn btn-default">Cancel</button>
+                <button id="editStudentContactButton" type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            </fieldset>
+        </form>
+        
       </div>
       <div class="screen" id="studentDetail">
           <div class="container">
@@ -495,7 +619,44 @@
             </fieldset>
         </form>
         
-        <table id="tableStudentSearch" data-show-toggle="true" data-show-columns="true" data-search="true" data-id-field="studentId"></table>        
+        <table id="tableStudentSearch" data-show-toggle="true" data-show-columns="true" data-search="true" data-select-item-name="ckStudentId"  data-id-field="id"
+        ></table>
+        <div>
+            <button id="btnAddToEvent" type="button" class="btn btn-primary hidden"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Add to Event</button>
+        </div>
+        
+      </div>
+      <div class="screen" id="eventSearch">
+          <form  class="form-horizontal">
+          <fieldset>
+              
+             <label  class="control-label col-lg-2"></label> 
+             <h2 class="col-lg-10 form-group">Event Search</h2> 
+
+            
+            <label for="type" class="control-label col-lg-2">Event Type</label>
+            <div class="col-lg-10 form-group"><input id="type" name="type" maxlength="25" list="eventTypes" class="form-control ltdata"></div>
+            
+            <label for="lowerBound_startDateTime" class="control-label col-lg-2">From Date</label>
+            <div class="col-lg-10 form-group"><input id="lowerBound_startDateTime" name="lowerBound_startDateTime" type="date" class="form-control ltdata"></div> 
+            <label for="upperBound_startDateTime" class="control-label col-lg-2">To Date</label>
+            <div class="col-lg-10 form-group"><input id="upperBound_startDateTime" name="upperBound_startDateTime" type="date" class="form-control ltdata"></div> 
+            
+            <label for="eventSearchButtons" class="control-label col-lg-2"></label>
+            <div id="eventSearchButtons" class="form-group col-lg-10">
+                <button type="reset" class="btn btn-default">Cancel</button>
+                <button id="eventSearchButton" type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            </fieldset>
+        </form>
+        
+        <table id="tableEventSearch"   data-id-field="id"
+        ></table>
+        <h2 id="eventStudentsTableHeader"></h2>
+        <table id="tableEventStudentsSearch"  data-select-item-name="ckStudentEventId" data-id-field="id"></table>        
+        <div>
+            <button id="btnShowStudentEventUpdateModal" type="button" class="btn btn-primary hidden"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Update Status</button>
+        </div>
         
       </div>
       <div class="screen" id="communicationLogSearch">
@@ -579,19 +740,6 @@
               
              <label  class="control-label col-lg-2"></label> 
              <h2 class="col-lg-10 form-group">Demerit Totals Search</h2> 
-              
-            <!--<label for="student_id" class="control-label col-lg-2">Student ID</label>-->
-            <!--<div class="col-lg-10 form-group"><input id="student_id" name="student_id" maxlength="25" class="form-control ltdata"></div>-->
-            
-            <!--<label for="studentFirstName" class="control-label col-lg-2">Student First Name</label>-->
-            <!--<div class="col-lg-10 form-group"><input id="studentFirstName" name="studentFirstName" maxlength="25" class="form-control ltdata"></div>-->
-
-            <!--<label for="studentLastName" class="control-label col-lg-2">Last Name</label>-->
-            <!--<div class="col-lg-10 form-group"><input id="studentLastName" name="studentLastName" maxlength="25" class="form-control ltdata"></div> -->
-
-            <!--<label for="gradeLevel" class="control-label col-lg-2">Student Grade Level</label>-->
-            <!--<div class="col-lg-10 form-group"><input id="gradeLevel" name="gradeLevel" maxlength="25" class="form-control ltdata"></div>-->
-
 
             <label for="demeritTotalsSearchButtons" class="control-label col-lg-2"></label>
             <div id="demeritTotalsSearchButtons" class="form-group col-lg-10">
@@ -601,8 +749,10 @@
             </fieldset>
         </form>
         
-        <table id="tableDemeritTotalsSearch" data-show-toggle="true" data-show-columns="true" data-filter-control="true" data-show-export="true" data-search="true"  data-id-field="id"></table>        
-        
+        <table id="tableDemeritTotalsSearch" data-show-toggle="true" data-show-columns="true" data-filter-control="true" data-show-export="true" data-search="true"  data-select-item-name="ckStudentId" data-id-field="studentId"></table>        
+        <div>
+            <button id="btnShowAddToEventModal" type="button" class="btn btn-primary hidden"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Add to Event</button>
+        </div>
       </div>
       <div class="screen" id="absenceSearch">
         <form id="absenceSearchForm" class="form-horizontal">
@@ -683,6 +833,60 @@
         <table id="tableStaffSearch" data-show-toggle="true" data-show-columns="true" data-detail-view="true" data-show-export="true" data-search="true" data-id-field="id"></table>        
         
       </div>      
+      <div class="screen" id="attendanceFiles">
+        <div class="container">
+           <h2 class="col-lg-12 form-group">Attendance File and Demerit Processing</h2>
+           
+           <div id="uploadAttendanceFile" class="panel panel-default">
+            <!-- Default panel contents -->
+            <div class="panel-heading">Upload Attendance File
+            </div>
+            <div class="panel-body">
+              <p>Upload an attendance file (downloaded from Gradebook.)</p>
+              <p><input type="file" name="fileAttendance" id="fileAttendance">
+              </p>
+              <p>
+                 <a id="btnUploadAttendanceFile" class="btn btn-primary btn-sm" href="#" role="button">Upload Attendance File</a>
+                </p>
+            </div>          
+        </div>
+
+           <div id="processAttendanceFiles" class="panel panel-default">
+            <!-- Default panel contents -->
+            <div class="panel-heading">Process Attendance Files
+            </div>
+            <div class="panel-body">
+              <p>Create attendance records based on the uploaded file.</p>
+              <p><a id="btnGetUnprocessedAttendanceFiles" class="btn btn-primary btn-sm" href="#" role="button">Get Unprocessed Attendance Files</a></p>
+              <div id="unprocessedAttendanceFiles">  </div>
+              
+            </div>          
+        </div>
+
+
+           
+
+           <div id="unprocessedDemeritDates" class="panel panel-default">
+            <!-- Default panel contents -->
+            <div class="panel-heading">Process Attendance Demerits</div>
+            <div class="panel-body">
+              <p>List of dates for which attendance records have been created but for which the demerits have not been created.  Click the relevant button to create attendance demerits for that date.</p>
+              <p><a id="getUnprocessedDemeritDates" class="btn btn-primary btn-sm" href="#" role="button">Get Unprocessed Demerit Dates</a>
+              </p>
+              <div id="unprocessedDemeritDatesButtons"></div>
+            </div>          
+        </div>
+           
+           
+           
+
+           
+           
+           
+           
+           
+           
+      </div>
     
 </div>
 </div>
@@ -773,6 +977,90 @@
   </div>
 </div>
 
+<div id="studentEventUpdateModal"  class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Update Student Event Records</h4>
+      </div>
+      <div class="modal-body">
+        <p></p>
+        <p>Select the updated absence status for these records, and click the <strong>Change Status</strong> button when ready.
+        </p>
+        <p><strong>Note:</strong>The display won't automatically refresh with the new values, but you can submit the same search to verify that your changes were recorded.</p>
+        <select id="studentEventModalStatus" name="studentEventModalStatus">
+            <option></option>
+            <option>Attended: Met Requirements</option>
+            <option>Attended: Did Not Meet Requirements</option>
+            <option>Did not attend</option>
+            
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btnModal" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary btn-updateAbsenceStatus">Change Status</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+<div id="addToEventModal"  class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Add To Event</h4>
+      </div>
+      <div class="modal-body">
+        <p></p>
+        <p>Choose an event, and click the <strong>Add to Event</strong> button when ready.
+        </p>
+        <!--<p><strong>Note:</strong>The display won't automatically refresh with the new values, but you can submit the same search to verify that your changes were recorded.</p>-->
+        <select id="addToEventModalEventId" name="addToEventModalEventId">
+            <option value="0"></option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btnModal" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary ">Add To Event</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<div id="contactEditModal"  class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Edit Contact</h4>
+      </div>
+      <div class="modal-body">
+        <p><strong>Note:</strong>The display won't automatically refresh with the new information, but you can submit the same search to verify that your changes were recorded.</p>
+        <form class="form-horizontal">
+          
+        </form>
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btnModal" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-updateContact">Update Contact</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="studentImageModal"  class="modal fade">
   <div class="modal-dialog">
@@ -819,7 +1107,32 @@
 
     var data;
     var now = new Date();
-    
+var departmentsWithDemeritAmountPermission = ["Attendance","Administration"];
+var departmentsWithContactEditPermission =  ["Attendance","Administration"];    
+      function setDateTimeInputValueToNow (jqObj) {
+        var now = new Date();
+        jqObj.val(new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().substring(0,19));
+      }
+      
+      function changeDateTimeInputValue(jqObj, minutes) {
+        var dateTime = new Date(jqObj.val());
+        var newDateTime = addMinutes(dateTime, minutes);
+        jqObj.val(new Date(newDateTime.getTime()-newDateTime.getTimezoneOffset()*60000).toISOString().substring(0,19));
+      }
+
+      // from https://stackoverflow.com/questions/1197928/how-to-add-30-minutes-to-a-javascript-date-object
+      function addMinutes(date, minutes) {
+          return new Date(date.getTime() + minutes*60000);
+      }
+      
+        function showEventStudents(eventId) {
+          //var eventId = $("#eventStudentsEventSelect").val();
+          getDataWithParams("vwStudentEvents", {"event_id" : eventId},function(response) {
+            loadCoursesAndStudents (response.data, "tableEventStudentsSearch");
+          });
+        }  
+
+
 
 function patchData(resource,key,columnData) {
         console.log("testPatch");
@@ -861,7 +1174,10 @@ function patchData(resource,key,columnData) {
                    formEl = $("#demeritForm")[0];
                    submitButton = $("#demeritForm button[type='Submit']")
                    break;
-
+                case 'Event' :
+                   formEl = $("#eventForm")[0];
+                   submitButton = $("#eventForm button[type='Submit']")
+                   break;
                 }
                 formEl.reset();
                 submitButton.prop('disabled',false);
@@ -923,10 +1239,187 @@ function patchData(resource,key,columnData) {
         
         $("#btnUpdateAbsenceStatus").on("click", showAbsenceUpdateModal);
         
+        $("#btnShowStudentEventUpdateModal").on("click", showStudentEventUpdateModal);
+        
+        $("#btnAddToEvent").on("click", showAddToEventModal);
+        
+        $("#eventSearchButton").on("click", function() {
+          var params = $("#eventSearch form").serializeArray();
+          params = params.filter(function(el) {return el.value != "";});
+          getDataWithParams('Event', params , function(response) {
+            loadCoursesAndStudents (response.data, "tableEventSearch");
+          });
+          return false;
+        })
+        
+           
+        $("#btnShowAddToEventModal").on("click", showAddToEventModal);  
+        
+        $(".setNow").on("click", function() {
+          setDateTimeInputValueToNow($("#commLogForm #dateTime"));
+        })
+        
+        $(".changeDay").on("click", function() {
+            var dayCount=$(this).attr("data-count");
+            var diffMinutes = dayCount*24*60;
+            changeDateTimeInputValue($("#commLogForm #dateTime"),diffMinutes);  
+        });
+        
+        $(".changeTime").on("click", function() {
+            var minutesCount=$(this).attr("data-count");
+            changeDateTimeInputValue($("#commLogForm #dateTime"),minutesCount);  
+        });
+        
+        $("a[href='#commLog']").on("click", function() {
+          setDateTimeInputValueToNow($("#commLogForm #dateTime"));
+        });
+        
+        
+        
+        
+        
+           
+           
+        $("#btnGetEvents").on("click", function() {
+          getData('Event',0, function(response) {
+            
+            $("#eventStudentsEventSelect option[value!='0']").remove();
+            var sortedData = response.data.sort(function(a,b) {
+              return a.startDateTime < b.startDateTime;
+            });
+            
+            
+            $.each(sortedData, function(i,v){
+              var option = $("<option>");
+              option.attr("value", v.id);
+              option.text(v.startDateTime + " - " + v.type);
+              $("#eventStudentsEventSelect").append(option);
+            });
+            
+          });
+          
+        });      
+        
+        $("#eventStudentsSearchButton").on("click", function() {
+          var eventId = $("#eventStudentsEventSelect").val();
+          getDataWithParams("vwStudentEvents", {"event_id" : eventId},function(response) {
+            loadCoursesAndStudents (response.data, "tableEventStudentsSearch");
+          });
+        });
+        
+      
+        
+        
+        $("#btnGetUnprocessedAttendanceFiles").on("click", getUnprocessedAttendanceFiles);
+ 
+ 
+ // the following is from 
+ //    http://usefulangle.com/post/14/jquery-2-ways-of-ajax-file-upload-formdata-and-filereader
+ 
+        $("#btnUploadAttendanceFile").on('click', function() {
+	// validate type of file
+    if(['text/csv'].indexOf($("#fileAttendance").get(0).files[0].type) == -1) {
+        alert('Error : Only JPEG, PNG & GIF allowed');
+        return;
+    }
+
+    var $data = new FormData();
+    $data.append('title', 'Attendance File');
+    $data.append('file', $("#fileAttendance").get(0).files[0]);
+    $data.append('idtoken', id_token);
+    $data.append('method', 'OTHER');
+
+
+	  // processData & contentType should be set to false
+    
+    $.ajax({
+        type: 'POST',
+        url:'https://lanetech.org/api/processes/processes.php/uploadAttendanceFile/', 
+        data: $data,
+        success: function(response) {
+        	 showModal(response.result, response.message);
+        },
+        error: function(response) {
+             showModal(response.result, response.message);
+        },
+        processData: false,
+        contentType: false
+    });
+});
+ 
+        $("body").on("click",".btnCreateAttendanceDemerits", function () {
+            var date = $(this).attr("data-date");
+            var button = $(this);
+            $.post(
+                    'https://lanetech.org/api/processes/processes.php/createDemeritsFromAttendanceData', 
+                    { 
+                        idtoken: id_token,
+                        method: "GET",
+                        attendanceDate: date
+                    },
+                    function(response) {
+                        showModal(response.result, response.message);
+                        if (response.result == "success") {
+                          button.remove();
+                        }
+                    });
+          
+          
+        });
+        
+        
+        $("body").on("click",".btnProcessAttendanceFile", function () {
+            var filename = $(this).attr("data-filename");
+            var button = $(this);
+            $.post(
+                    'https://lanetech.org/api/processes/processes.php/createAttendanceEntriesFromFile', 
+                    { 
+                        idtoken: id_token,
+                        method: "GET",
+                        filename: filename
+                    },
+                    function(response) {
+                        showModal(response.result, response.message);
+                        if (response.result == "success") {
+                          button.remove();
+                        }
+                    });
+          
+          
+        });
+        
+        
+        $("#getUnprocessedDemeritDates").on("click", function() {
+              $.post(
+                    'https://lanetech.org/api/v2/api.php/vwUnprocessedAttendanceDemeritDates', 
+                    
+                    { 
+                        idtoken: id_token,
+                        method: "GET",
+                        
+                    },
+                    function (response) {
+                        $("#unprocessedDemeritDatesButtons").empty();
+                        $.each(response.data, function(i,v) {
+                          
+                          var button = $("<a>");
+                          button.addClass("btn btn-primary btnCreateAttendanceDemerits");
+                          button.text("Create demerits for " + v.date);
+                          button.attr("data-date",v.date);
+                          $("#unprocessedDemeritDatesButtons").append(button);
+                          $("#unprocessedDemeritDatesButtons").append("<br><br>");
+                        });
+
+                    });
+  
+        });
+        
+        
         
         $(".studentDetailCommLogEntry").on("click", function() {
             console.log($(this));
             var student_id = $("#studentDetail input[id='id']").val();
+            $("#commLogForm #dateTime").val(new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().substring(0,19));
             showCommLogEntryForm(student_id);
         });   
         
@@ -941,6 +1434,88 @@ function patchData(resource,key,columnData) {
            $('html, body').animate({scrollTop: '0px'}, 300);
            return false;
        });
+
+
+        $(".btn-updateContact").on("click", function() {
+           var key = $("#contactEditModal form input[id='id']").val();
+           var data ={};
+           $('#contactEditModal form input.ltdata').filter(':enabled').each(function(){
+                // only include changed fields
+                if ($(this).attr("data-initial-value") != $(this).val()) {
+                    data[$(this).attr("id")] = $(this).val();
+                };
+            });
+           //console.log(key,data);
+           patchData('Contact',key,data);
+           $("#contactEditModal").modal("hide");
+           return false;
+       });
+
+      
+      function changeDateTimeInputValue(jqObj, minutes) {
+        var dateTime = new Date(jqObj.val());
+        var newDateTime = addMinutes(dateTime, minutes);
+        jqObj.val(new Date(newDateTime.getTime()-newDateTime.getTimezoneOffset()*60000).toISOString().substring(0,19));
+      }
+
+      // from https://stackoverflow.com/questions/1197928/how-to-add-30-minutes-to-a-javascript-date-object
+      function addMinutes(date, minutes) {
+          return new Date(date.getTime() + minutes*60000);
+      }
+
+
+
+      function loadEditContactForm (response) {
+            $("#contactEditModal form").empty();
+            var contact = response.data[0];
+            var input, div, label;
+            $.each(contact, function(k,v) {
+                formGroup = $('<div>');
+                label = $('<label>');
+                div = $('<div>');
+                input = $('<input>');
+                
+                formGroup.addClass('form-group');
+
+                label.attr('for',k);
+                label.text(columns["Contact"][k]["Label"]);
+                label.addClass("col-sm-2 control-label");
+                input.attr('id',k);
+                input.attr('placeholder',k);
+                input.attr('type','text');
+                input.addClass("form-control ltdata");
+                input.attr("data-initial-value",v);
+                input.val(v);
+
+                //console.log(columns["Contact"][k]["Editable"],columns["Contact"][k]["Display"]);
+                if (!columns["Contact"][k]["Editable"]) {
+                  input.prop("readonly",true);
+                }
+                
+                if (!columns["Contact"][k]["Display"]) {
+                  formGroup.addClass("hidden");
+                } 
+                
+                
+                div.append(input);
+                div.addClass('col-sm-10');
+                formGroup.append(label);
+                formGroup.append(div);
+                
+                $("#contactEditModal form").append(formGroup);
+            })
+    
+            $("#contactEditModal").modal();
+            
+        }
+        
+        $("body").on("click", ".editContactButton", function() {
+            console.log($(this));
+            var contactId = $(this).attr("data-contact-id");
+            getData('Contact',contactId,loadEditContactForm);
+        });
+
+
        $("#editSectionButton").on("click", function() {
            console.log("editSectionButton.click");
            
@@ -1072,13 +1647,34 @@ function patchData(resource,key,columnData) {
            $("#demeritButton").prop("disabled",false);
            return false;
        });        
+
+       $("#eventButton").on("click", function() {
+           if ($("#eventForm #dateTime").val() == "") {   
+               showModal('Error in date-time value', 'Please enter both a date and time.')
+               return false;
+           }  
+           $("#eventButton").prop("disabled",true);
+           var key = $("input[id='id']").val();
+           var data ={};
+           $('#eventForm .ltdata').filter(':enabled').each(function(){
+                data[$(this).attr("id")] = $(this).val();
+            });
+           postData('Event',data);
+           if ($("#genericModal h4").text() == "success") {
+               $("#demeritForm")[0].reset();
+           }
+           $('html, body').animate({scrollTop: '0px'}, 300);
+           $("#eventButton").prop("disabled",false);
+           return false;
+       }); 
+
+
+
        
         $('body').on('click', 'a.editItem', function() {
             loadEditForm($(this).attr("data-resource"),$(this).attr("data-id"));
         });
- 
- 
-    
+
          $('body').on('click', 'button.btnModal', function() {
             if ($("#genericModal .modal-header h4").text() == "Are you still using the app?") {
                 gapi.auth2.getAuthInstance().currentUser.get().reloadAuthResponse(); 
@@ -1131,7 +1727,11 @@ function patchData(resource,key,columnData) {
         });
         
         
-        
+        $(document).on('click','.navbar-collapse.in',function(e) {
+            if( $(e.target).is('a') && $(e.target).attr('class') != 'dropdown-toggle' ) {
+                $(this).collapse('hide');
+            }
+        });
 
 
         
@@ -1171,7 +1771,7 @@ function patchData(resource,key,columnData) {
         })
         
         
-        $.each(columns, function(k,v) {
+        $.each(columns["StaffProfile"], function(k,v) {
            if (v["Display"]) {
                //  Legend Text provides group headers
                if (v.hasOwnProperty("legendText")) {
@@ -1349,6 +1949,7 @@ function patchData(resource,key,columnData) {
         $('#tableDemeritTotalsSearch').bootstrapTable('destroy');
         $('#tableDemeritTotalsSearch').bootstrapTable({
             columns: [
+              {field: "", checkbox: true},
              {field: "studentId", title: "Student ID", sortable: true},
              {field: "studentFullName", title: "Student Name", sortable: true},
              {field: "studentEmail", title: "Student Email", sortable: true},
@@ -1396,11 +1997,10 @@ function patchData(resource,key,columnData) {
         if (username="dphayes" ||departmentsWithDemeritAmountPermission.indexOf(profileData["department"]) >= 0) {
                        
                         $("#btnUpdateAbsenceStatus").removeClass("hidden");
+                        $("#btnShowAddToEventModal").removeClass("hidden");
                     };
          hideLoader('absenceSearch');
     }    
-
- 
     
     function loadCommunicationLogEntries (response) {
         console.log("loadCommunicationLogEntries");
@@ -1467,6 +2067,27 @@ function patchData(resource,key,columnData) {
         });
         
         switch(tableId) {
+            case "tableEventSearch" :
+            $('#' + tableId).bootstrapTable('destroy');
+             displayColumns = [
+                 {field: "id", title: "Event ID"},
+                 {field: "startDateTime", title: "Date/Time", sortable: true},
+                 {field: "durationMinutes", title: "Duration (min)"},
+                 {field: "type", title: "Type", sortable: true},
+                 {field: "title", title: "Title", sortable: true},
+                  {
+                        field: 'actions',
+                        title: 'Actions',
+                        align: 'center',
+                        events: actionEvents,
+                        formatter: function (value, row, index) {
+                          return '<a class="eventStudents" href="javascript:void(0)"><i class="glyphicon glyphicon-list"></i></a>'; 
+                        }
+                  } 
+                ];
+             break;              
+            
+            
             case "tableCommunicationLogSearch":
              $('#' + tableId).bootstrapTable('destroy');
              displayColumns = [
@@ -1485,6 +2106,8 @@ function patchData(resource,key,columnData) {
             case "tableStudentSearch":
              $('#' + tableId).bootstrapTable('destroy');
              displayColumns = [
+               
+                 {field: "", checkbox: true},
                  {field: "id", title: "Student ID", sortable: true},
                  {field: "lastName", title: "Last Name", sortable: true},
                  {field: "firstName", title: "First Name", sortable: true},
@@ -1549,6 +2172,17 @@ function patchData(resource,key,columnData) {
              
              ]  ;
              break;
+          case "tableEventStudentsSearch":
+             //console.log("loadCoursesAndStudents",tableId);
+             $('#' + tableId).bootstrapTable('destroy');
+             displayColumns = [
+               
+                 {field: "", checkbox: true},
+                 {field: "student_id", title: "Student ID", sortable: true},
+                 {field: "studentName", title: "Student Name", sortable: true},
+                 {field: "status", title: "Event Status", sortable: true}
+                ];
+             break;   
  
         }
 
@@ -1651,6 +2285,10 @@ function patchData(resource,key,columnData) {
                     function(response) {
                         checkResponseError(response);
                         loadDemeritTotalsSearchResults(response);
+                        if (username="dphayes" ||departmentsWithDemeritAmountPermission.indexOf(profileData["department"]) >= 0) {
+                          console.log("demerit totals response handler");
+                          $("#btnShowAddToEventModal").removeClass("hidden");
+                      };
                     });
         }   
         
@@ -1727,6 +2365,18 @@ function patchData(resource,key,columnData) {
             
             showCommLogEntryForm(targetStudentId) ;
             
+        },
+        'click .eventStudents': function (e, value, row, index) {
+            console.log(value,row,index);
+            if (row.hasOwnProperty("eventId")) {
+                targetEventId = row.eventId;
+            }
+            else if (row.hasOwnProperty("id")){
+                 targetEventId = row.id;
+            };  
+            $("#eventStudentsTableHeader").text("Event: " + row.title + " " + row.startDateTime);
+            $("#eventStudentsTableHeader")[0].scrollIntoView();
+            showEventStudents(targetEventId);
         }
     };
     
@@ -2023,6 +2673,8 @@ function patchData(resource,key,columnData) {
                 window[responseHandler]);      
     }
     
+    
+    
     function loadEditForm (strResource, strKey) {
         // handle to form
         var editForm = $("#edit" + strResource + "Form");
@@ -2063,10 +2715,10 @@ function patchData(resource,key,columnData) {
                         }
                     })
                     user["id"] = profileData["id"];
-                    
-                    if (username="dphayes" ||departmentsWithDemeritAmountPermission.indexOf(profileData["department"]) >= 0) {
+                    user["department"] =  profileData["department"];  
+                    if (username="zdphayes" ||departmentsWithDemeritAmountPermission.indexOf(profileData["department"]) >= 0) {
                         $("#demeritForm #amount").prop("disabled",false);
-                        
+                        $(".ltStaffEditIconLink").show();
                     }
                     
                     
@@ -2075,6 +2727,49 @@ function patchData(resource,key,columnData) {
                 });      
     }
         
+    function loadStudentContactsForm (id) {
+        var url = 'https://lanetech.org/api/v2/api.php/vwStudentContacts/' + id;
+        $.post(
+                url, 
+                { 
+                    idtoken: id_token,
+                    method: 'GET'
+                },
+                function(response) {
+                    var data = response.data[0];
+                    var fieldset = $("#editStudentContacts fieldset")
+                    fieldset.find("div.form-group").not("#editStudentContactsButtons").remove();
+                    $.each(data, function(k,v) {
+                        var formGroup = $("<div>"), inputDiv = $("<div>"), label = $("<label>"), input = $("<input>");
+                        formGroup.addClass("form-group");
+                        label.attr("for", k);
+                        label.text(k);
+                        label.addClass("control-label col-lg-2");
+                        formGroup.append(label);
+                        
+                        inputDiv.addClass("col-lg-10");
+                        
+                        input.attr("type", "text");
+                        input.addClass("form-control ltdata");
+                        input.attr("id",k);
+                        input.attr("data-initialValue",v);
+                        input.val(v);
+                        if (k == "id") {
+                            input.prop("readonly", true)
+                        }
+                        
+                        inputDiv.append(input);
+                        formGroup.append(inputDiv);
+                        fieldset.append(formGroup);
+                    });
+                    fieldset.append($("#editStudentContactsButtons"));
+    });
+    
+    
+    }
+    
+    
+    
     function showCommLogEntryForm(studentId) {
       $("#commLogForm #student_id").val(studentId);
       $("#commLogForm #dateTime").val(new Date());
@@ -2130,7 +2825,9 @@ function patchData(resource,key,columnData) {
     
     function getStudentDetail (studentId) {
         getData('Student', studentId, loadStudentBasic);
-        getData('student_database', studentId, loadStudentContacts);
+        //getData('student_database', studentId, loadStudentContacts);
+        getDataWithParams('Contact', {"student_id": studentId}, loadStudentContactsV2);
+        
         getDataWithParams('vwStudentDivision', {"student_id": studentId}, loadStudentDivision);
         getDataWithParams('vwStudentCourseSections', {"student_id": studentId}, loadStudentCourseSections);
         getDataWithParams('vwCommunicationLogEntries', {"student_id": studentId}, loadStudentCommunicationLogEntries);
@@ -2180,6 +2877,40 @@ function patchData(resource,key,columnData) {
         panel.find(".panel-body").append(createContactAddressElement(contact));
         return panel;
     }
+    
+    function createContactPanelV2 (contact) {
+        var panel = $("#contactPanelTemplate").clone();
+        panel.removeClass("hide");
+        panel.attr("id",contact.id);
+        panel.attr("data-contact-id",contact.id);
+        panel.find(".panel-title strong").text(contact.firstName + " " + contact.lastName);
+        panel.find(".panel-title").append(" " + contact.type);
+        panel.find(".panel-title").append(
+        ' <a class="editContactButton ltStaffEditIconLink" href="#" title="Edit Contact" data-contact-id="' + contact.id + '"><i class="glyphicon glyphicon-pencil"></i></a>  ');
+        panel.find(".panel-body").append(createContactAddressElementV2(contact));
+        return panel;
+    }
+    
+    function createContactAddressElementV2 (contact) {
+        var el = $("<address>");
+        el.append($("<strong>").text(contact.firstName + " " + contact.lastName));
+        el.append(" (" + contact.relation + ")");
+        el.append($("<br>"));
+        el.append(contact.address);
+        el.append($("<br>"));
+        el.append(contact.city + ", " + contact.state + " " + contact.zip);
+        el.append($("<br>"));
+        el.append("Phone: " + contact.phoneHome);
+        el.append($("<br>"));
+        el.append("Cell: " + contact.phoneCell);
+        el.append($("<br>"));        
+        el.append("Email: " + contact.email );
+        if (contact.email.indexOf('@') > -1) {
+            el.append(" " + getGoogleMailToHtml(contact.email,''));
+        }
+        return el;
+    }
+    
     
     function createContactAddressElement (contact) {
         var el = $("<address>");
@@ -2301,6 +3032,7 @@ function patchData(resource,key,columnData) {
         $("#studentProfilePanelBody").text("");
         var contacts = getContactsFromQSData(response.data[0]);
         
+        
         $.each(contacts, function(k,v) {
             if (k != "student")
             $("#studentContactInformationPanelBody").append(createContactPanel(v));
@@ -2310,7 +3042,26 @@ function patchData(resource,key,columnData) {
 
    }
     
-    
+    function loadStudentContactsV2(response) {
+        $("#studentContactInformationPanelBody").empty();
+        $("#studentProfilePanelBody").text("");
+        var contacts = response.data;
+        $.each(contacts, function(i,v) {
+            if (v.relation == 'Self') {
+             $("#studentProfilePanelBody").append(createContactAddressElementV2(v));   
+            }
+            else {
+                $("#studentContactInformationPanelBody").append(createContactPanelV2(v));
+            }
+        });
+        
+        if(departmentsWithContactEditPermission.indexOf(user["department"]) >= 0) {
+          $(".ltStaffEditIconLink").show();
+        }
+        
+        
+
+   }
     
      function loadStudentDivision(response) {
         var data = response.data;
@@ -2330,7 +3081,8 @@ function patchData(resource,key,columnData) {
         tbody.append('<tr><td>Counselor Email</td><td>' + div["divisionCounselorEmail"] + ' <a target="blank" href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=' + div["divisionCounselorEmail"] + '&tf=1&su=' + div["studentName"] + ': ' + div["studentId"] + '"><i class="glyphicon glyphicon-envelope"></i></a></td></tr>');
         tbody.append('<tr><td>Attendance Name</td><td>' + div["divisionAttendanceName"] + '</td></tr>');
         tbody.append('<tr><td>Attendance Email</td><td>' + div["divisionAttendanceEmail"] + ' <a target="blank" href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=' + div["divisionAttendanceEmail"] + '&tf=1&su=' + div["studentName"] + ': ' + div["studentId"] + '"><i class="glyphicon glyphicon-envelope"></i></a></td></tr>');
-        
+        tbody.append('<tr><td>Student Leader Name</td><td>' + div["divisionStudentLeaderName"] + '</td></tr>');
+        tbody.append('<tr><td>Student Leader Email</td><td>' + div["divisionStudentLeaderEmail"] + ' <a target="blank" href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=' + div["divisionStudentLeaderEmail"] + '"><i class="glyphicon glyphicon-envelope"></i></a></td></tr>');
         t.append(tbody);
         
         $("#studentDivisionInformationPanelBody").append(t);
@@ -2346,6 +3098,105 @@ function patchData(resource,key,columnData) {
     }
     
     
+    function getUnprocessedAttendanceFiles () {
+        $.post(
+                    'https://lanetech.org/api/processes/processes.php/unprocessedAttendanceFiles/', 
+                    
+                    { 
+                        idtoken: id_token,
+                        method: "GET"
+                    },
+                    function (response) {
+                      $("#unprocessedAttendanceFiles .loader").show();
+                      $("#unprocessedAttendanceFiles *").not(".loader").remove();
+                      var d = new Date();
+                      var n = d.toLocaleString();
+                      $("#unprocessedAttendanceFiles .loader").hide();
+                      $("#unprocessedAttendanceFiles").append("<p>Number of unprocessed files as of " + n + ": " + response.count + "</p>");
+                      
+                      // clear existing buttons and create a button for each file
+                      $(".btnProcessAttendanceFile").remove();
+                      $.each(response.data, function(i,v) {
+
+                          var button = $("<a>");
+                          button.addClass("btn btn-primary btnProcessAttendanceFile");
+                          button.attr("data-filename",v);
+                          button.text("Process file " + v);
+                          $("#unprocessedAttendanceFiles").append(button);
+                          $("#unprocessedAttendanceFiles").append("<br><br>");
+                      });
+                      
+                    });
+    }
+    
+    function showAddToEventModal () {
+        // disable the button until we have events to select
+        $("#addToEventModal .btn-primary").prop("disabled",true);
+        
+        // get event data and load into select
+        getData('vwRecentAndFutureEvents', 0, function(response) {
+           $("#addToEventModalEventId option[value!='0']").remove();
+           
+           $.each(response.data, function(i,v) {
+             var option = $("<option>");
+             option.attr("value",v.id);
+             option.text(v.title + ", " + v.startDateTime + ", in " + v.location);
+             $("#addToEventModalEventId").append(option);
+           });
+           // if we have events, enable the button
+           if (response.data.length > 0) {
+              $("#addToEventModal .btn-primary").prop("disabled",false);
+           }
+           else {
+             showModal("No events found","There are no events; you may need to create one first.");
+           }
+         });
+        
+        
+        var checkedCount = $("input[name='ckStudentId']:checked").length;
+        if (checkedCount == 0) {
+            $("#addToEventModal").modal("hide");
+            showModal("Invalid", "You must select at least one item.");
+        }
+        $("#addToEventModal .modal-body p:eq(0)").text("You're about to add " + checkedCount + " student" + (checkedCount > 1 ? "s":"") + " to the selected event.");
+        $("#addToEventModal").modal("show");
+    }
+
+    $("#addToEventModal .btn-primary").on("click", function() {
+        var eventId = $("#addToEventModalEventId").val();
+        if (eventId == "") {
+            showModal("Invalid Event", "Please select an event.");
+            return false;
+        }
+        
+        var keys = [];
+        $.each($("input[name='ckStudentId']:checked"), function(){            
+            keys.push($(this).val());
+        });
+        //$("#absenceUpdateModal").modal("hide");
+        createStudentEventEntries(keys.toString(),eventId);
+        
+    })
+
+    function createStudentEventEntries (studentIds, eventId) {
+        $("#addToEventModal").modal("hide");
+        $.post(
+                'https://lanetech.org/api/processes/processes.php/addStudentsToEvent', 
+                
+                { 
+                    idtoken: id_token,
+                    method: "POST",
+                    event_id: eventId, 
+                    student_ids: studentIds
+                },
+                function(response) {
+                    showModal(response["result"],response["message"]);
+                });
+    }
+
+
+
+
     function showAbsenceUpdateModal () {
         var checkedCount = $("input[name='ckAbsenceId']:checked").length;
         if (checkedCount == 0) {
@@ -2355,11 +3206,7 @@ function patchData(resource,key,columnData) {
         $("#absenceUpdateModal .modal-body p:eq(0)").text("You're about to update the attendance status for the " + checkedCount + " selected item" + (checkedCount > 1 ? "s":"") + ".");
         $("#absenceUpdateModal").modal("show");
     }
-    
-    
-    
-    
-    
+
     $("#absenceUpdateModal .btn-primary").on("click", function() {
         var status = $("#absenceModalStatus").val();
         if (status == "") {
@@ -2375,9 +3222,7 @@ function patchData(resource,key,columnData) {
         updateAbsenceEntries(keys.toString(),status);
         
     })
-    
-    
-    
+
     function updateAbsenceEntries (keys, status) {
         $('#absenceUpdateModal').modal("hide");
         $.post(
@@ -2392,7 +3237,45 @@ function patchData(resource,key,columnData) {
                 });
     }
     
-    
+    function showStudentEventUpdateModal () {
+        var checkedCount = $("#eventSearch input[name='ckStudentEventId']:checked").length;
+        if (checkedCount == 0) {
+            $("#studentEventUpdateModal").modal("hide");
+            showModal("Invalid", "You must select at least one item.");
+        }
+        $("#studentEventUpdateModal .modal-body p:eq(0)").text("You're about to update the event status for the " + checkedCount + " selected item" + (checkedCount > 1 ? "s":"") + ".");
+        $("#studentEventUpdateModal").modal("show");
+    }
+
+    $("#studentEventUpdateModal .btn-primary").on("click", function() {
+        var status = $("#studentEventModalStatus").val();
+        if (status == "") {
+            showModal("Invalid Status Value", "Please select a status");
+            return false;
+        }
+        
+        var keys = [];
+        $.each($("#eventSearch input[name='ckStudentEventId']:checked"), function(){            
+            keys.push($(this).val());
+        });
+        
+        updateStudentEventEntries(keys.toString(),status);
+        
+    })
+
+    function updateStudentEventEntries (keys, status) {
+        $('#studentEventUpdateModal').modal("hide");
+        $.post(
+                'https://lanetech.org/api/v2/api.php/StudentEvent/', 
+                { 
+                    idtoken: id_token,
+                    method: "PATCH",
+                    columns: {"status": status, "keys": keys}
+                },
+                function(response) {
+                    showModal(response["result"],response["message"]);
+                });
+    }    
     
     
     function loadStudentCourseSections(response) {
@@ -2633,7 +3516,9 @@ function patchData(resource,key,columnData) {
             return html.join('');
         }
     
-        var columns = {
+        var columns = {};
+
+columns["StaffProfile"] = {
 
 "id":{ "Label":"ID",	"Display":true,	"Editable":false,	"MaxLength":6},
 "employeeId":{	"Label":"Employee ID",	"Display":false,	"Editable":false,	"MaxLength":9},
@@ -2671,6 +3556,26 @@ function patchData(resource,key,columnData) {
 "docZip":{	"Label":"Zip",	"Display":true,	"Editable":true,	"MaxLength":12},
   "docPhone":{	"Label":"Phone",	"Display":true,	"Editable":true,	"MaxLength":12}};
 
+columns["Contact"] = {
+  "id":{ "Label":"ID",	"Display":true,	"Editable":false,	"MaxLength":6},
+"type":{ "Label":"Type",	"Display":true,	"Editable":true,	"Options":"Parent 1,Parent 2,Emergency 1,Emergency 2,Doctor"},
+"relation":{ "Label":"Relationship",	"Display":true,	"Editable":true},
+"firstName":{ "Label":"First Name",	"Display":true,	"Editable":true},
+"lastName":{ "Label":"Last Name",	"Display":true,	"Editable":true},
+"address":{ "Label":"Address",	"Display":true,	"Editable":true},
+"city":{ "Label":"City",	"Display":true,	"Editable":true},
+"state":{ "Label":"State",	"Display":true,	"Editable":true,	"MaxLength":2},
+"zip":{ "Label":"Zip",	"Display":true,	"Editable":true,	"MaxLength":10},
+"email":{ "Label":"Email",	"Display":true,	"Editable":true},
+"phoneCell":{"Label":"Phone: Cell",	"Display":true,	"Editable":true,	"MaxLength":12},
+"phoneHome":{"Label":"Phone: Home",	"Display":true,	"Editable":true,	"MaxLength":12},
+"cellConsent":{ "Label":"Cell Consent",	"Display":true,	"Editable":true,	"MaxLength":6},
+"student_id":{ "Label":"Student_id",	"Display":true,	"Editable":false,	"MaxLength":6},
+"staff_id":{ "Label":"Staff_id",	"Display":true,	"Editable":false,	"MaxLength":6},
+"createdBy_staff_id":{ "Label":"Created By ID",	"Display":false,	"Editable":false,	"MaxLength":6},
+"createdDateTime":{ "Label":"Created",	"Display":true,	"Editable":false,	"MaxLength":6},
+
+}
 
 var patterns = {};
 patterns.phone = "[0-9]{3}-[0-9]{3}-[0-9]{4}";
@@ -2682,10 +3587,27 @@ columns["id"]["legendText"] = "Profile Basics"  ;
 columns["emgName"]["legendText"] = "Emergency Contact"  ; 
 columns["docName"]["legendText"] = "Physician"  ;       
 
+
+
+
+
+
 var bellScheduleColumns = {
     
 };
 
-var departmentsWithDemeritAmountPermission = ["Attendance","Administration"];
 
 </script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.css">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/extensions/filter-control/bootstrap-table-filter-control.js"></script>
+    
+    <!--// table export extension-->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.9.1/extensions/export/bootstrap-table-export.js"></script>
+    <script src="//rawgit.com/hhurz/tableExport.jquery.plugin/master/tableExport.js"></script>
+</body>
+</html>
+
+
